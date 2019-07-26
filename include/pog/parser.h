@@ -5,6 +5,7 @@
 
 #include <pog/action.h>
 #include <pog/automaton.h>
+#include <pog/errors.h>
 #include <pog/grammar.h>
 #include <pog/parsing_table.h>
 #include <pog/rule_builder.h>
@@ -94,14 +95,22 @@ public:
 		{
 			auto maybe_token = _tokenizer.next_token();
 			if (!maybe_token)
-				assert(false && "Unexpected end of input");
+			{
+				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+				_raise_syntax_error(expected_symbols);
+				return std::nullopt;
+			}
 
 			auto token = std::move(maybe_token).value();
 			const auto* next_symbol = token.symbol;
 
 			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
 			if (!maybe_action)
-				assert(false && "Syntax error (no action)");
+			{
+				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+				_raise_syntax_error(expected_symbols, next_symbol);
+				return std::nullopt;
+			}
 
 			// TODO: use visit
 			auto action = maybe_action.value();
@@ -129,7 +138,10 @@ public:
 				// What left on the stack now determines what state we get into now
 				auto maybe_next_state = _parsing_table.get_transition(_automaton.get_state(stack.back().first), reduce.rule->get_lhs());
 				if (!maybe_next_state)
-					assert(false && "Syntax error (in reduction)");
+				{
+					assert(false && "Reduction happened but corresponding GOTO table record is empty");
+					return std::nullopt;
+				}
 
 				stack.emplace_back(
 					maybe_next_state.value()->get_index(),
@@ -155,7 +167,7 @@ public:
 			}
 		}
 
-		assert(false && "Syntax error");
+		assert(false && "Stack was emptied too early");
 		return std::nullopt;
 	}
 
@@ -170,6 +182,29 @@ public:
 	}
 
 private:
+	void _raise_syntax_error(const std::vector<const SymbolType*>& expected_symbols, const SymbolType* unexpected_symbol = nullptr)
+	{
+		std::vector<std::string> expected_symbols_str(expected_symbols.size());
+		std::transform(expected_symbols.begin(), expected_symbols.end(), expected_symbols_str.begin(), [](const auto& sym) {
+			return sym->get_name();
+		});
+
+		std::string msg;
+		if (unexpected_symbol)
+			msg = fmt::format(
+				"Syntax error: Unexpected {}, expected one of {}",
+				unexpected_symbol->get_name(),
+				fmt::join(expected_symbols_str.begin(), expected_symbols_str.end(), ", ")
+			);
+		else
+			msg = fmt::format(
+				"Syntax error: Unknown symbol on input, expected one of {}",
+				fmt::join(expected_symbols_str.begin(), expected_symbols_str.end(), ", ")
+			);
+
+		throw SyntaxError(msg);
+	}
+
 	Grammar<ValueT> _grammar;
 	Tokenizer<ValueT> _tokenizer;
 	Automaton<ValueT> _automaton;

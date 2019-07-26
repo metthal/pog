@@ -159,25 +159,4 @@ private:
 	std::vector<std::uint32_t> _state_stack;
 };
 
-//enum class PatternBoundary
-//{
-//	None,
-//	Fullword
-//};
-//
-//template <typename ValueT>
-//class Tokenizer
-//{
-//public:
-//	using TokenType = Token<ValueT>;
-//
-//	Tokenizer() : _tokens(), _input_stack(), _state_stack(), _re_set(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START) {}
-//
-//	TokenType* add_token(std::string pattern, PatternBoundary boundary = PatternBoundary::None)
-//	{
-//		if (boundary == PatternBoundary::Fullword)
-//			pattern = fmt::format("\\b{}(\\b|$)", pattern);
-//	}
-//};
-
 } // namespace pog

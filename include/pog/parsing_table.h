@@ -132,6 +132,22 @@ public:
 		return goto_itr->second;
 	}
 
+	std::vector<const SymbolType*> get_expected_symbols_from_state(const StateType* state) const
+	{
+		std::vector<const SymbolType*> result;
+		for (const auto& sym : _grammar->get_symbols())
+		{
+			if (sym->is_nonterminal())
+				continue;
+
+			StateAndSymbolType ss{state, sym.get()};
+			if (auto itr = _action_table.find(ss); itr != _action_table.end())
+				result.push_back(sym.get());
+		}
+
+		return result;
+	}
+
 private:
 	const AutomatonType* _automaton;
 	const GrammarType* _grammar;
