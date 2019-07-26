@@ -36,7 +36,7 @@ public:
 	using TokenType = Token<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 
-	Tokenizer(GrammarType* grammar) : _grammar(grammar)
+	Tokenizer(const GrammarType* grammar) : _grammar(grammar)
 	{
 		_re_set = std::make_unique<re2::RE2::Set>(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START);
 	}
@@ -151,7 +151,7 @@ public:
 	}
 
 private:
-	GrammarType* _grammar;
+	const GrammarType* _grammar;
 	std::vector<std::unique_ptr<TokenType>> _tokens;
 
 	std::unique_ptr<re2::RE2::Set> _re_set;
