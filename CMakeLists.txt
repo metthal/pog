@@ -59,6 +59,7 @@ endif()
 ## Library.
 add_library(pog INTERFACE)
 target_sources(pog INTERFACE ${POG_FILES})
+target_compile_options(pog INTERFACE -Wall -Wextra)
 target_include_directories(pog INTERFACE
 	"$<BUILD_INTERFACE:${POG_INCLUDE_DIR}>"
 	"$<INSTALL_INTERFACE:${POG_INSTALL_INCLUDE_DIR}>"
