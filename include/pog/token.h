@@ -15,32 +15,24 @@ class Token
 {
 public:
 	using SymbolType = Symbol<ValueT>;
+	using CallbackType = std::function<ValueT(std::string_view)>;
 
-	Token(std::uint32_t index, const std::string& pattern) : Token(index, nullptr, pattern) {}
-	Token(std::uint32_t index, SymbolType* symbol, const std::string& pattern)
-		: _index(index), _symbol(symbol), _pattern(pattern), _regexp(std::make_unique<re2::RE2>(_pattern)), _action()
-	{
-		if (_symbol)
-			_symbol->set_kind(SymbolKind::Terminal);
-	}
+	Token(std::uint32_t index, const std::string& pattern) : Token(index, pattern, nullptr) {}
+	Token(std::uint32_t index, const std::string& pattern, const SymbolType* symbol)
+		: _index(index), _pattern(pattern), _symbol(symbol), _regexp(std::make_unique<re2::RE2>(_pattern)), _action() {}
 
-	template <typename CallbackT>
-	Token(std::uint32_t index, const std::string& pattern, CallbackT&& action) : Token(index, nullptr, pattern, std::forward<CallbackT>(action)) {}
-
-	template <typename CallbackT>
-	Token(std::uint32_t index, SymbolType* symbol, const std::string& pattern, CallbackT&& action)
-		: _index(index), _symbol(symbol), _pattern(pattern), _regexp(std::make_unique<re2::RE2>(_pattern)), _action(std::forward<CallbackT>(action))
-	{
-		if (_symbol)
-			_symbol->set_kind(SymbolKind::Terminal);
-	}
-
-	const SymbolType* get_symbol() const { return _symbol; }
 	const std::string& get_pattern() const { return _pattern; }
+	const SymbolType* get_symbol() const { return _symbol; }
 	const re2::RE2* get_regexp() const { return _regexp.get(); }
 
 	bool has_symbol() const { return _symbol != nullptr; }
 	bool has_action() const { return static_cast<bool>(_action); }
+
+	template <typename CallbackT>
+	void set_action(CallbackT&& action)
+	{
+		_action = std::forward<CallbackT>(action);
+	}
 
 	template <typename... Args>
 	ValueT perform_action(Args&&... args) const
@@ -50,10 +42,10 @@ public:
 
 private:
 	std::uint32_t _index;
-	SymbolType* _symbol;
 	std::string _pattern;
+	const SymbolType* _symbol;
 	std::unique_ptr<re2::RE2> _regexp;
-	std::function<ValueT(std::string_view)> _action;
+	CallbackType _action;
 };
 
 } // namespace pog

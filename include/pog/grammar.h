@@ -18,36 +18,29 @@ public:
 	using SymbolType = Symbol<ValueT>;
 	using TokenType = Token<ValueT>;
 
-	Grammar()
+	Grammar() : _rules(), _symbols(), _name_to_symbol(), _internal_start_symbol(nullptr), _internal_end_of_input(nullptr),
+			_start_rule(nullptr), _empty_table(), _first_table(), _follow_table()
 	{
-		_start_symbol = nullptr;
-		_internal_start_symbol = add_symbol(SymbolKind::Start);
-		_internal_end_of_input = add_symbol(SymbolKind::End);
+		_internal_start_symbol = add_symbol(SymbolKind::Nonterminal, "@start");
+		_internal_end_of_input = add_symbol(SymbolKind::End, "@end");
 	}
 
-	const std::vector<std::unique_ptr<SymbolType>>& get_symbols() const
+	const std::vector<std::unique_ptr<SymbolType>>& get_symbols() const { return _symbols; }
+	const std::vector<std::unique_ptr<RuleType>>& get_rules() const { return _rules; }
+
+	const SymbolType* get_end_of_input_symbol() const { return _internal_end_of_input; }
+	const RuleType* get_start_rule() const { return _start_rule; }
+
+	SymbolType* get_symbol(const std::string& name) const
 	{
-		return _symbols;
+		auto itr = _name_to_symbol.find(name);
+		if (itr == _name_to_symbol.end())
+			return nullptr;
+
+		return itr->second;
 	}
 
-	const std::vector<std::unique_ptr<RuleType>>& get_rules() const
-	{
-		return _rules;
-	}
-
-	const SymbolType* get_end_of_input_symbol() const
-	{
-		return _internal_end_of_input;
-	}
-
-	const RuleType* get_start_rule() const
-	{
-		auto itr = std::find_if(_rules.begin(), _rules.end(), [](const auto& rule) {
-			return rule->get_lhs()->is_start();
-		});
-		return itr != _rules.end() ? itr->get() : nullptr;
-	}
-
+	// TODO: return filter_view<>
 	std::vector<const RuleType*> get_rules_of_symbol(const SymbolType* sym) const
 	{
 		std::vector<const RuleType*> result;
@@ -59,6 +52,7 @@ public:
 		return result;
 	}
 
+	// TODO: return filter_view<>
 	std::vector<const RuleType*> get_rules_with_symbol(const SymbolType* sym) const
 	{
 		std::vector<const RuleType*> result;
@@ -72,28 +66,25 @@ public:
 
 	void set_start_symbol(const SymbolType* symbol)
 	{
-		_start_symbol = symbol;
-		add_rule(_internal_start_symbol, std::vector<const SymbolType*>{_start_symbol, _internal_end_of_input}, [](auto&& args) {
+		_start_rule = add_rule(_internal_start_symbol, std::vector<const SymbolType*>{symbol, _internal_end_of_input}, [](auto&& args) {
 			return std::move(args[0]);
 		});
 	}
 
-	SymbolType* add_symbol(SymbolKind kind)
+	SymbolType* add_symbol(SymbolKind kind, const std::string& name)
 	{
-		_symbols.push_back(std::make_unique<SymbolType>(_symbols.size(), kind));
+		if (auto itr = _name_to_symbol.find(name); itr != _name_to_symbol.end())
+			return itr->second;
+
+		_symbols.push_back(std::make_unique<SymbolType>(_symbols.size(), kind, name));
+		_name_to_symbol.emplace(_symbols.back()->get_name(), _symbols.back().get());
 		return _symbols.back().get();
 	}
 
-	SymbolType* add_symbol(const std::string& name)
+	template <typename CallbackT>
+	RuleType* add_rule(const SymbolType* lhs, const std::vector<const SymbolType*>& rhs, CallbackT&& action)
 	{
-		_symbols.push_back(std::make_unique<SymbolType>(_symbols.size(), SymbolKind::Nonterminal, name));
-		return _symbols.back().get();
-	}
-
-	template <typename... Args>
-	RuleType* add_rule(Args&&... args)
-	{
-		_rules.push_back(std::make_unique<RuleType>(_rules.size(), std::forward<Args>(args)...));
+		_rules.push_back(std::make_unique<RuleType>(_rules.size(), lhs, rhs, std::forward<CallbackT>(action)));
 		return _rules.back().get();
 	}
 
@@ -215,7 +206,7 @@ public:
 		return result;
 	}
 
-	std::unordered_set<const SymbolType*> follow(const SymbolType* sym, std::unordered_set<const SymbolType*>& visited)
+	std::unordered_set<const SymbolType*> follow(const SymbolType* sym, std::unordered_set<const SymbolType*>& visited) const
 	{
 		if (auto itr = _follow_table.find(sym); itr != _follow_table.end())
 			return itr->second;
@@ -260,13 +251,14 @@ public:
 private:
 	std::vector<std::unique_ptr<RuleType>> _rules;
 	std::vector<std::unique_ptr<SymbolType>> _symbols;
-	const SymbolType* _start_symbol;
+	std::unordered_map<std::string, SymbolType*> _name_to_symbol;
 	const SymbolType* _internal_start_symbol;
 	const SymbolType* _internal_end_of_input;
+	const RuleType* _start_rule;
 
 	mutable std::unordered_map<const SymbolType*, bool> _empty_table;
 	mutable std::unordered_map<const SymbolType*, std::unordered_set<const SymbolType*>> _first_table;
-	std::unordered_map<const SymbolType*, std::unordered_set<const SymbolType*>> _follow_table;
+	mutable std::unordered_map<const SymbolType*, std::unordered_set<const SymbolType*>> _follow_table;
 };
 
 } // namespace pog

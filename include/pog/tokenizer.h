@@ -13,6 +13,15 @@ namespace pog {
 template <typename ValueT>
 struct TokenMatch
 {
+	TokenMatch(const Symbol<ValueT>* sym) : symbol(sym), value(), match_length(0) {}
+	template <typename T>
+	TokenMatch(const Symbol<ValueT>* sym, T&& v, std::size_t len) : symbol(sym), value(std::forward<T>(v)), match_length(len) {}
+	TokenMatch(const TokenMatch&) = default;
+	TokenMatch(TokenMatch&&) noexcept = default;
+
+	TokenMatch& operator=(const TokenMatch&) = default;
+	TokenMatch& operator=(TokenMatch&&) noexcept = default;
+
 	const Symbol<ValueT>* symbol;
 	ValueT value;
 	std::size_t match_length;
@@ -27,7 +36,7 @@ public:
 	using TokenType = Token<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 
-	Tokenizer(const GrammarType* grammar) : _grammar(grammar)
+	Tokenizer(GrammarType* grammar) : _grammar(grammar)
 	{
 		_re_set = std::make_unique<re2::RE2::Set>(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START);
 	}
@@ -37,28 +46,9 @@ public:
 		_re_set->Compile();
 	}
 
-	const TokenType* add_token(const std::string& pattern)
+	TokenType* add_token(const std::string& pattern, const SymbolType* symbol)
 	{
-		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), pattern));
-		std::string error;
-		_re_set->Add(_tokens.back()->get_pattern(), &error);
-		assert(error.empty() && "Error when compiling token regexp");
-		return _tokens.back().get();
-	}
-
-	const TokenType* add_token(const std::string& pattern, SymbolType* symbol)
-	{
-		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), symbol, pattern));
-		std::string error;
-		_re_set->Add(_tokens.back()->get_pattern(), &error);
-		assert(error.empty() && "Error when compiling token regexp");
-		return _tokens.back().get();
-	}
-
-	template <typename CallbackT>
-	const TokenType* add_token(const std::string& pattern, SymbolType* symbol, CallbackT&& action)
-	{
-		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), symbol, pattern, std::forward<CallbackT>(action)));
+		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), pattern, symbol));
 		std::string error;
 		_re_set->Add(_tokens.back()->get_pattern(), &error);
 		assert(error.empty() && "Error when compiling token regexp");
@@ -120,14 +110,14 @@ public:
 				for (auto pattern_index : matched_patterns)
 				{
 					_tokens[pattern_index]->get_regexp()->Match(current_input, 0, current_input.size(), re2::RE2::Anchor::ANCHOR_START, &submatch, 1);
-					if (longest_match < submatch.size())
+					if (longest_match < static_cast<std::size_t>(submatch.size()))
 					{
 						best_match = _tokens[pattern_index].get();
 						longest_match = submatch.size();
 					}
 				}
 
-				ValueT value;
+				ValueT value{};
 				if (best_match->has_action())
 					value = best_match->perform_action(std::string_view{current_input.data(), longest_match});
 
@@ -141,7 +131,7 @@ public:
 				return TokenMatchType{best_match->get_symbol(), std::move(value), longest_match};
 			}
 
-			return TokenMatchType{_grammar->get_end_of_input_symbol(), ValueT{}, 0};
+			return _grammar->get_end_of_input_symbol();
 		}
 
 		return std::nullopt;
@@ -161,7 +151,7 @@ public:
 	}
 
 private:
-	const GrammarType* _grammar;
+	GrammarType* _grammar;
 	std::vector<std::unique_ptr<TokenType>> _tokens;
 
 	std::unique_ptr<re2::RE2::Set> _re_set;

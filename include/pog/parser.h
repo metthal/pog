@@ -7,8 +7,10 @@
 #include <pog/automaton.h>
 #include <pog/grammar.h>
 #include <pog/parsing_table.h>
+#include <pog/rule_builder.h>
 #include <pog/state.h>
 #include <pog/symbol.h>
+#include <pog/token_builder.h>
 #include <pog/tokenizer.h>
 
 #include <pog/operations/read.h>
@@ -29,17 +31,18 @@ public:
 
 	using BacktrackingInfoType = BacktrackingInfo<ValueT>;
 	using ItemType = Item<ValueT>;
+	using RuleBuilderType = RuleBuilder<ValueT>;
 	using RuleType = Rule<ValueT>;
 	using StateType = State<ValueT>;
 	using SymbolType = Symbol<ValueT>;
 	using StateAndRuleType = StateAndRule<ValueT>;
 	using StateAndSymbolType = StateAndSymbol<ValueT>;
+	using TokenBuilderType = TokenBuilder<ValueT>;
 	using TokenType = Token<ValueT>;
 
-	Parser() : _grammar(), _tokenizer(&_grammar), _automaton(&_grammar),
-		_includes(&_automaton, &_grammar), _lookback(&_automaton, &_grammar), _read_operation(&_automaton, &_grammar),
-		_follow_operation(&_automaton, &_grammar, _includes, _read_operation), _lookahead_operation(&_automaton, &_grammar, _lookback, _follow_operation),
-		_parsing_table(&_automaton, &_grammar, _lookahead_operation)
+	Parser() : _grammar(), _tokenizer(&_grammar), _automaton(&_grammar), _includes(&_automaton, &_grammar),
+		_lookback(&_automaton, &_grammar), _read_operation(&_automaton, &_grammar), _follow_operation(&_automaton, &_grammar, _includes, _read_operation),
+		_lookahead_operation(&_automaton, &_grammar, _lookback, _follow_operation), _parsing_table(&_automaton, &_grammar, _lookahead_operation)
 	{
 		static_assert(std::is_default_constructible_v<ValueT>, "Value type needs to be default constructible");
 	}
@@ -49,6 +52,10 @@ public:
 
 	void prepare()
 	{
+		for (auto& tb : _token_builders)
+			tb.done();
+		for (auto& rb : _rule_builders)
+			rb.done();
 		_automaton.construct_states();
 		_includes.calculate();
 		_lookback.calculate();
@@ -58,32 +65,21 @@ public:
 		_parsing_table.calculate();
 	}
 
-	const Grammar<ValueT>& get_grammar() const
+	TokenBuilderType& token(const std::string& pattern)
 	{
-		return _grammar;
+		_token_builders.emplace_back(&_grammar, &_tokenizer, pattern);
+		return _token_builders.back();
 	}
 
-	template <typename... Args>
-	SymbolType* add_symbol(Args&&... args)
+	RuleBuilderType& rule(const std::string& lhs)
 	{
-		return _grammar.add_symbol(std::forward<Args>(args)...);
+		_rule_builders.emplace_back(&_grammar, lhs);
+		return _rule_builders.back();
 	}
 
-	template <typename... Args>
-	RuleType* add_rule(Args&&... args)
+	void set_start_symbol(const std::string& name)
 	{
-		return _grammar.add_rule(std::forward<Args>(args)...);
-	}
-
-	template <typename... Args>
-	const TokenType* add_token(Args&&... args)
-	{
-		return _tokenizer.add_token(std::forward<Args>(args)...);
-	}
-
-	void set_start_symbol(const SymbolType* symbol)
-	{
-		_grammar.set_start_symbol(symbol);
+		_grammar.set_start_symbol(_grammar.add_symbol(SymbolKind::Nonterminal, name));
 	}
 
 	std::optional<ValueT> parse(std::istream& input)
@@ -183,6 +179,9 @@ private:
 	Follow<ValueT> _follow_operation;
 	Lookahead<ValueT> _lookahead_operation;
 	ParsingTable<ValueT> _parsing_table;
+
+	std::vector<RuleBuilderType> _rule_builders;
+	std::vector<TokenBuilderType> _token_builders;
 };
 
 } // namespace pog
