@@ -101,7 +101,7 @@ public:
 
 			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
 			if (!maybe_action)
-				assert(false && "Syntax error");
+				assert(false && "Syntax error (no action)");
 
 			// TODO: use visit
 			auto action = maybe_action.value();
@@ -129,7 +129,7 @@ public:
 				// What left on the stack now determines what state we get into now
 				auto maybe_next_state = _parsing_table.get_transition(_automaton.get_state(stack.back().first), reduce.rule->get_lhs());
 				if (!maybe_next_state)
-					assert(false && "Syntax error");
+					assert(false && "Syntax error (in reduction)");
 
 				stack.emplace_back(
 					maybe_next_state.value()->get_index(),
