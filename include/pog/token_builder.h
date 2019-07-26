@@ -15,13 +15,14 @@ public:
 	using TokenType = Token<ValueT>;
 	using TokenizerType = Tokenizer<ValueT>;
 
-	TokenBuilder(GrammarType* grammar, TokenizerType* tokenizer, const std::string& pattern) : _grammar(grammar), _tokenizer(tokenizer), _pattern(pattern) {}
+	TokenBuilder(GrammarType* grammar, TokenizerType* tokenizer, const std::string& pattern) : _grammar(grammar), _tokenizer(tokenizer), _pattern(pattern),
+		_symbol_name(), _precedence(), _action(), _fullword(false) {}
 
 	void done()
 	{
 		auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
 
-		auto token = _tokenizer->add_token(_pattern, symbol);
+		auto token = _tokenizer->add_token(_fullword ? fmt::format("\\b{}(\\b|$)", _pattern) : _pattern, symbol);
 		if (_action)
 			token->set_action(std::move(_action));
 
@@ -51,6 +52,12 @@ public:
 		return *this;
 	}
 
+	TokenBuilder& fullword()
+	{
+		_fullword = true;
+		return *this;
+	}
+
 private:
 	GrammarType* _grammar;
 	TokenizerType* _tokenizer;
@@ -58,6 +65,7 @@ private:
 	std::string _symbol_name;
 	std::optional<Precedence> _precedence;
 	typename TokenType::CallbackType _action;
+	bool _fullword;
 };
 
 } // namespace pog
