@@ -4,6 +4,7 @@
 
 #include <pog/action.h>
 #include <pog/automaton.h>
+#include <pog/errors.h>
 #include <pog/grammar.h>
 #include <pog/operations/lookahead.h>
 #include <pog/state.h>
@@ -57,7 +58,7 @@ public:
 		auto ss = StateAndSymbolType{state, symbol};
 		auto itr = _action_table.find(ss);
 		if (itr != _action_table.end())
-			assert(false && "Conflict happened (in placing accepting)");
+			assert(false && "Conflict happened in placing accept but this shouldn't happen");
 
 		_action_table.emplace(std::move(ss), Accept{});
 	}
@@ -69,7 +70,10 @@ public:
 		{
 			auto itr = _action_table.find(ss);
 			if (itr != _action_table.end())
-				assert(false && "Conflict happened (in placing shifts)");
+			{
+				if (std::holds_alternative<ReduceActionType>(itr->second))
+					throw ShiftReduceConflict(ss.symbol, std::get<ReduceActionType>(itr->second).rule);
+			}
 
 			_action_table.emplace(std::move(ss), ShiftActionType{dest_state});
 		}
@@ -77,7 +81,7 @@ public:
 		{
 			auto itr = _goto_table.find(ss);
 			if (itr != _goto_table.end())
-				assert(false && "Conflict happened (in filling GOTO)");
+				assert(false && "Conflict happened in filling GOTO table but this shouldn't happen");
 
 			_goto_table.emplace(std::move(ss), dest_state);
 		}
@@ -100,15 +104,21 @@ public:
 				const auto& input_prec = symbol->get_precedence();
 				// Stack symbol precedence is lower, keep shift in the table
 				if (stack_prec < input_prec)
-					;
+				{
+					return;
+				}
 				// Stack symbol precedence is greater, prefer reduce
 				else if (stack_prec > input_prec)
+				{
 					itr->second = ReduceActionType{rule};
-				else
-					assert(false && "!!! CONFLICT !!!");
+					return;
+				}
 			}
-			else
-				assert(false && "!!! CONFLICT !!!");
+
+			if (std::holds_alternative<ReduceActionType>(itr->second))
+				throw ReduceReduceConflict(std::get<ReduceActionType>(itr->second).rule, rule);
+			else if (std::holds_alternative<ShiftActionType>(itr->second))
+				throw ShiftReduceConflict(ss.symbol, rule);
 		}
 		else
 			_action_table.emplace(std::move(ss), ReduceActionType{rule});

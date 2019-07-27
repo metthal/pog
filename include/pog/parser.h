@@ -97,8 +97,7 @@ public:
 			if (!maybe_token)
 			{
 				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				_raise_syntax_error(expected_symbols);
-				return std::nullopt;
+				throw SyntaxError(expected_symbols);
 			}
 
 			auto token = std::move(maybe_token).value();
@@ -108,8 +107,7 @@ public:
 			if (!maybe_action)
 			{
 				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				_raise_syntax_error(expected_symbols, next_symbol);
-				return std::nullopt;
+				throw SyntaxError(next_symbol, expected_symbols);
 			}
 
 			// TODO: use visit
@@ -182,29 +180,6 @@ public:
 	}
 
 private:
-	void _raise_syntax_error(const std::vector<const SymbolType*>& expected_symbols, const SymbolType* unexpected_symbol = nullptr)
-	{
-		std::vector<std::string> expected_symbols_str(expected_symbols.size());
-		std::transform(expected_symbols.begin(), expected_symbols.end(), expected_symbols_str.begin(), [](const auto& sym) {
-			return sym->get_name();
-		});
-
-		std::string msg;
-		if (unexpected_symbol)
-			msg = fmt::format(
-				"Syntax error: Unexpected {}, expected one of {}",
-				unexpected_symbol->get_name(),
-				fmt::join(expected_symbols_str.begin(), expected_symbols_str.end(), ", ")
-			);
-		else
-			msg = fmt::format(
-				"Syntax error: Unknown symbol on input, expected one of {}",
-				fmt::join(expected_symbols_str.begin(), expected_symbols_str.end(), ", ")
-			);
-
-		throw SyntaxError(msg);
-	}
-
 	Grammar<ValueT> _grammar;
 	Tokenizer<ValueT> _tokenizer;
 	Automaton<ValueT> _automaton;

@@ -7,6 +7,7 @@
 #include <pog/rule.h>
 #include <pog/symbol.h>
 #include <pog/token.h>
+#include <pog/utils.h>
 
 namespace pog {
 

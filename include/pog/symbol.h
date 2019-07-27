@@ -10,7 +10,6 @@ namespace pog {
 
 enum class SymbolKind
 {
-	//Start,
 	End,
 	Nonterminal,
 	Terminal

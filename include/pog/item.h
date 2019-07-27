@@ -47,7 +47,7 @@ public:
 	{
 		if (is_final())
 		{
-			assert(false && "Shouldn't call get_left_side_without_read_symbol() on final item");
+			assert(false && "Shouldn't call get_right_side_without_read_symbol() on final item");
 			return {};
 		}
 
