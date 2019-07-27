@@ -4,7 +4,7 @@ os: linux
 dist: bionic
 
 before_install:
-  - sudo apt-get install -y lcov libre2-dev tree
+  - sudo apt-get install -y lcov libfmt-dev libre2-dev tree
 
 script:
   - mkdir build && cd build
