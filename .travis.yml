@@ -1,0 +1,28 @@
+language: cpp
+
+os: linux
+dist: bionic
+
+before_install:
+  - sudo apt-get install -y lcov libre2-dev tree
+
+script:
+  - mkdir build && cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release -DPOG_TESTS=ON -DPOG_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=../install ..
+  - cmake --build . --target install -- -j
+  - ./tests/pog_tests
+  - tree ../install
+  - rm -rf *
+  - cmake -DCMAKE_BUILD_TYPE=Debug -DPOG_TESTS=ON -DPOG_COVERAGE=ON ..
+  - ./tests/pog_tests
+  - cd .. && ./coverage.sh
+  - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+
+branches:
+  only:
+    - master
+    - /^v?\d+\.\d+.*$/
+
+notifications:
+  email:
+    on_success: never
