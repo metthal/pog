@@ -14,7 +14,7 @@ script:
   - tree ../install
   - rm -rf *
   - cmake -DCMAKE_BUILD_TYPE=Debug -DPOG_TESTS=ON -DPOG_COVERAGE=ON ..
-  - ./tests/pog_tests
+  - cmake --build . -- -j
   - cd .. && ./coverage.sh
   - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
