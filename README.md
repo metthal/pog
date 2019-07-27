@@ -1,5 +1,9 @@
 # Pog
 
+[![Build Status](https://travis-ci.org/metthal/pog.svg?branch=master)](https://travis-ci.org/metthal/pog)
+[![codecov](https://codecov.io/gh/metthal/pog/branch/master/graph/badge.svg)](https://codecov.io/gh/metthal/pog)
+
+
 Pog is C++17 library for generating LALR(1) parsers. It splits definitions of parser into:
 
 1. Declaration of tokens (regular expressions describing how the input should be tokenized)
