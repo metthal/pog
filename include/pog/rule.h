@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include <pog/symbol.h>
 #include <pog/token.h>
