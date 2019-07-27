@@ -23,15 +23,12 @@ public:
 
 	Automaton(const GrammarType* grammar) : _grammar(grammar) {}
 
+	const std::vector<std::unique_ptr<StateType>>& get_states() const { return _states; }
+
 	const StateType* get_state(std::size_t index) const
 	{
 		assert(index < _states.size() && "Accessing state index out of bounds");
 		return _states[index].get();
-	}
-
-	const std::vector<std::unique_ptr<StateType>>& get_states() const
-	{
-		return _states;
 	}
 
 	template <typename StateT>
@@ -48,6 +45,29 @@ public:
 		}
 		else
 			return {itr->get(), false};
+	}
+
+	void closure(StateType& state)
+	{
+		std::deque<const ItemType*> to_process;
+		for (const auto& item : state)
+			to_process.push_back(item.get());
+
+		while (!to_process.empty())
+		{
+			const auto* current_item = to_process.front();
+			to_process.pop_front();
+
+			const auto* next_symbol = current_item->get_read_symbol();
+			auto rules = _grammar->get_rules_of_symbol(next_symbol);
+			for (const auto* rule : rules)
+			{
+				auto new_item = Item{rule};
+				auto result = state.add_item(std::move(new_item));
+				if (result.second)
+					to_process.push_back(result.first);
+			}
+		}
 	}
 
 	void construct_states()
@@ -128,29 +148,6 @@ node [shape=rect];
 	}
 
 private:
-	void closure(StateType& state)
-	{
-		std::deque<const ItemType*> to_process;
-		for (const auto& item : state)
-			to_process.push_back(item.get());
-
-		while (!to_process.empty())
-		{
-			const auto* current_item = to_process.front();
-			to_process.pop_front();
-
-			const auto* next_symbol = current_item->get_read_symbol();
-			auto rules = _grammar->get_rules_of_symbol(next_symbol);
-			for (const auto* rule : rules)
-			{
-				auto new_item = Item{rule};
-				auto result = state.add_item(std::move(new_item));
-				if (result.second)
-					to_process.push_back(result.first);
-			}
-		}
-	}
-
 	const GrammarType* _grammar;
 	std::vector<std::unique_ptr<StateType>> _states;
 };

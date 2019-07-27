@@ -36,7 +36,7 @@ public:
 	using TokenType = Token<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 
-	Tokenizer(const GrammarType* grammar) : _grammar(grammar)
+	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _re_set(), _input_stack(), _state_stack()
 	{
 		_re_set = std::make_unique<re2::RE2::Set>(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START);
 	}
@@ -131,6 +131,7 @@ public:
 				return TokenMatchType{best_match->get_symbol(), std::move(value), longest_match};
 			}
 
+			// TODO: call some sort of end of input token so user can perform some action when we end an input
 			return _grammar->get_end_of_input_symbol();
 		}
 

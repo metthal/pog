@@ -7,6 +7,7 @@
 #include <pog/automaton.h>
 #include <pog/errors.h>
 #include <pog/grammar.h>
+#include <pog/parser_report.h>
 #include <pog/parsing_table.h>
 #include <pog/rule_builder.h>
 #include <pog/state.h>
@@ -51,8 +52,9 @@ public:
 	Parser(const Parser<ValueT>&) = delete;
 	Parser(Parser<ValueT>&&) noexcept = default;
 
-	void prepare()
+	ParserReport<ValueT> prepare()
 	{
+		ParserReport<ValueT> report;
 		for (auto& tb : _token_builders)
 			tb.done();
 		for (auto& rb : _rule_builders)
@@ -63,7 +65,9 @@ public:
 		_read_operation.calculate();
 		_follow_operation.calculate();
 		_lookahead_operation.calculate();
-		_parsing_table.calculate();
+		_parsing_table.calculate(report);
+		_tokenizer.prepare();
+		return report;
 	}
 
 	TokenBuilderType& token(const std::string& pattern)
@@ -85,7 +89,6 @@ public:
 
 	std::optional<ValueT> parse(std::istream& input)
 	{
-		_tokenizer.prepare();
 		_tokenizer.push_input_stream(input);
 
 		std::deque<std::pair<std::uint32_t, std::optional<ValueT>>> stack;
@@ -143,7 +146,7 @@ public:
 
 				stack.emplace_back(
 					maybe_next_state.value()->get_index(),
-					reduce.rule->perform_action(std::move(action_arg))
+					reduce.rule->has_action() ? reduce.rule->perform_action(std::move(action_arg)) : ValueT{}
 				);
 			}
 			else if (std::holds_alternative<ShiftActionType>(action))

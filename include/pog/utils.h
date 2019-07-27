@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <variant>
 #include <utility>
 
 namespace pog {
@@ -44,6 +45,17 @@ inline std::size_t hash_combine(const Rest&... rest)
 	std::size_t seed = 0;
 	hash_combine(seed, rest...);
 	return seed;
+}
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+template <typename Variant, typename... Fs>
+auto visit_with(Variant& v, Fs&&... fs)
+{
+	return std::visit(overloaded{
+		std::forward<Fs>(fs)...
+	}, v);
 }
 
 } // namespace pog

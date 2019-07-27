@@ -71,6 +71,11 @@ if(POG_EXAMPLES)
 	add_subdirectory(examples)
 endif()
 
+## Build tests if requested.
+if(POG_TESTS)
+	add_subdirectory(tests)
+endif()
+
 ## We need to set custom RE2 include directory and library path if we were one who downloaded it.
 ## Also we need to set proper requirements for pkg-config file.
 if(POG_DOWNLOAD_RE2)

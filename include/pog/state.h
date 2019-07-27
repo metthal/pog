@@ -21,6 +21,10 @@ public:
 	std::uint32_t get_index() const { return _index; }
 	void set_index(std::uint32_t index) { _index = index; }
 
+	std::size_t size() const { return _items.size(); }
+	auto begin() const { return _items.begin(); }
+	auto end() const { return _items.end(); }
+
 	template <typename T>
 	std::pair<ItemType*, bool> add_item(T&& item)
 	{
@@ -36,10 +40,6 @@ public:
 		else
 			return {itr->get(), false};
 	}
-
-	std::size_t size() const { return _items.size(); }
-	auto begin() const { return _items.begin(); }
-	auto end() const { return _items.end(); }
 
 	void add_transition(const SymbolType* symbol, const State* state)
 	{
@@ -93,30 +93,12 @@ public:
 		return result;
 	}
 
-	std::unordered_map<const SymbolType*, std::vector<const ItemType*>> get_partitions() const
-	{
-		std::unordered_map<const SymbolType*, std::vector<const ItemType*>> result;
-
-		for (const auto& item : _items)
-		{
-			if (item->is_final())
-				continue;
-
-			const auto* next_sym = item->get_read_symbol();
-			if (auto itr = result.find(next_sym); itr == result.end())
-				result.emplace(next_sym, std::vector<const ItemType*>{item.get()});
-			else
-				itr->second.push_back(item.get());
-		}
-
-		return result;
-	}
-
 	bool contains(const ItemType& item) const
 	{
-		return std::lower_bound(_items.begin(), _items.end(), item, [](const auto& left, const auto& needle) {
+		auto itr = std::lower_bound(_items.begin(), _items.end(), item, [](const auto& left, const auto& needle) {
 			return *left.get() < needle;
-		}) != _items.end();
+		});
+		return itr != _items.end() && *itr->get() == item;
 	}
 
 	bool operator==(const State& rhs) const

@@ -6,6 +6,7 @@
 #include <pog/automaton.h>
 #include <pog/errors.h>
 #include <pog/grammar.h>
+#include <pog/parser_report.h>
 #include <pog/operations/lookahead.h>
 #include <pog/state.h>
 #include <pog/symbol.h>
@@ -35,7 +36,7 @@ public:
 	ParsingTable(const AutomatonType* automaton, const GrammarType* grammar, Lookahead<ValueT>& lookahead_op)
 		: _automaton(automaton), _grammar(grammar), _lookahead_op(lookahead_op) {}
 
-	void calculate()
+	void calculate(ParserReport<ValueT>& report)
 	{
 		for (const auto& state : _automaton->get_states())
 		{
@@ -43,12 +44,12 @@ public:
 				add_accept(state.get(), _grammar->get_end_of_input_symbol());
 
 			for (const auto& [sym, dest_state] : state->get_transitions())
-				add_state_transition(state.get(), sym, dest_state);
+				add_state_transition(report, state.get(), sym, dest_state);
 
 			for (const auto& item : state->get_production_items())
 			{
 				for (const auto& sym : _lookahead_op[StateAndRuleType{state.get(), item->get_rule()}])
-					add_reduction(state.get(), sym, item->get_rule());
+					add_reduction(report, state.get(), sym, item->get_rule());
 			}
 		}
 	}
@@ -63,7 +64,7 @@ public:
 		_action_table.emplace(std::move(ss), Accept{});
 	}
 
-	void add_state_transition(const StateType* src_state, const SymbolType* symbol, const StateType* dest_state)
+	void add_state_transition(ParserReport<ValueT>& report, const StateType* src_state, const SymbolType* symbol, const StateType* dest_state)
 	{
 		auto ss = StateAndSymbolType{src_state, symbol};
 		if (symbol->is_terminal())
@@ -72,10 +73,10 @@ public:
 			if (itr != _action_table.end())
 			{
 				if (std::holds_alternative<ReduceActionType>(itr->second))
-					throw ShiftReduceConflict(ss.symbol, std::get<ReduceActionType>(itr->second).rule);
+					report.add_shift_reduce_conflict(ss.state, ss.symbol, std::get<ReduceActionType>(itr->second).rule);
 			}
-
-			_action_table.emplace(std::move(ss), ShiftActionType{dest_state});
+			else
+				_action_table.emplace(std::move(ss), ShiftActionType{dest_state});
 		}
 		else if (symbol->is_nonterminal())
 		{
@@ -87,7 +88,7 @@ public:
 		}
 	}
 
-	void add_reduction(const StateType* state, const SymbolType* symbol, const RuleType* rule)
+	void add_reduction(ParserReport<ValueT>& report, const StateType* state, const SymbolType* symbol, const RuleType* rule)
 	{
 		auto ss = StateAndSymbolType{state, symbol};
 		auto itr = _action_table.find(ss);
@@ -116,9 +117,9 @@ public:
 			}
 
 			if (std::holds_alternative<ReduceActionType>(itr->second))
-				throw ReduceReduceConflict(std::get<ReduceActionType>(itr->second).rule, rule);
+				report.add_reduce_reduce_conflict(ss.state, std::get<ReduceActionType>(itr->second).rule, rule);
 			else if (std::holds_alternative<ShiftActionType>(itr->second))
-				throw ShiftReduceConflict(ss.symbol, rule);
+				report.add_shift_reduce_conflict(ss.state, ss.symbol, rule);
 		}
 		else
 			_action_table.emplace(std::move(ss), ReduceActionType{rule});

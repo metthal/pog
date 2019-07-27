@@ -59,22 +59,4 @@ public:
 	}
 };
 
-class ReduceReduceConflict : public Error
-{
-public:
-	template <typename T>
-	ReduceReduceConflict(const Rule<T>* rule1, const Rule<T>* rule2) : Error(
-			fmt::format("Reduce-reduce conflict with rule {} and {}", rule1->to_string(), rule2->to_string())
-		) {}
-};
-
-class ShiftReduceConflict : public Error
-{
-public:
-	template <typename T>
-	ShiftReduceConflict(const Symbol<T>* sym, const Rule<T>* rule) : Error(
-			fmt::format("Shift-reduce conflict with symbol {} and rule {}", sym->get_name(), rule->to_string())
-		) {}
-};
-
 } // namespace pog

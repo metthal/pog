@@ -43,9 +43,6 @@ struct Precedence
 
 		return false;
 	}
-
-	bool operator<=(const Precedence& rhs) const { return *this == rhs || *this < rhs; }
-	bool operator>=(const Precedence& rhs) const { return *this == rhs || *this > rhs; }
 };
 
 } // namespace pog

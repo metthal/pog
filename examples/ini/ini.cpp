@@ -96,6 +96,12 @@ int main(int argc, char* argv[])
 				std::vector<Section>{}
 			};
 		})
+		.production("sections").action([](auto&& args) -> ParserType {
+			return Document{
+				Section{std::string{}, std::vector<Attribute>{}},
+				std::get<std::vector<Section>>(args[0])
+			};
+		})
 		.production().action([](auto&&) -> ParserType {
 			return Document{
 				Section{std::string{}, std::vector<Attribute>{}},

@@ -23,16 +23,14 @@ public:
 
 	std::uint32_t get_index() const { return _index; }
 	const Precedence& get_precedence() const { return _precedence.value(); }
-
-	void set_kind(SymbolKind kind) { _kind = kind; }
-	void set_precedence(std::uint32_t level, Associativity assoc) { _precedence = Precedence{level, assoc}; }
+	const std::string& get_name() const { return _name; }
 
 	bool has_precedence() const { return static_cast<bool>(_precedence); }
 	bool is_end() const { return _kind == SymbolKind::End; }
 	bool is_nonterminal() const { return _kind == SymbolKind::Nonterminal; }
 	bool is_terminal() const { return _kind == SymbolKind::Terminal; }
 
-	const std::string& get_name() const { return _name; }
+	void set_precedence(std::uint32_t level, Associativity assoc) { _precedence = Precedence{level, assoc}; }
 
 private:
 	std::uint32_t _index;

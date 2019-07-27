@@ -18,6 +18,9 @@ public:
 	using SymbolType = Symbol<ValueT>;
 	using CallbackType = std::function<ValueT(std::vector<ValueT>&&)>;
 
+	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs)
+		: _index(index), _lhs(lhs), _rhs(rhs), _action() {}
+
 	template <typename CallbackT>
 	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs, CallbackT&& action)
 		: _index(index), _lhs(lhs), _rhs(rhs), _action(std::forward<CallbackT>(action)) {}
@@ -51,6 +54,8 @@ public:
 
 		return fmt::format("{} {} {}", _lhs->get_name(), arrow, fmt::join(rhs_strings.begin(), rhs_strings.end(), " "));
 	}
+
+	bool has_action() const { return static_cast<bool>(_action); }
 
 	template <typename... Args>
 	ValueT perform_action(Args&&... args) const { return _action(std::forward<Args>(args)...); }
