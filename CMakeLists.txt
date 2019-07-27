@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(POG_DOWNLOAD_RE2 "Download RE2 during build process" OFF)
 option(POG_EXAMPLES     "Build examples"                    OFF)
 option(POG_TESTS        "Build tests"                       OFF)
+option(POG_COVERAGE     "Enable coverage"                   OFF)
 
 ## Includes.
 include(CMakePackageConfigHelpers)
@@ -65,6 +66,10 @@ target_include_directories(pog INTERFACE
 	"$<INSTALL_INTERFACE:${POG_INSTALL_INCLUDE_DIR}>"
 )
 target_link_libraries(pog INTERFACE re2::re2 fmt::fmt)
+if(POG_COVERAGE)
+	target_compile_options(pog INTERFACE --coverage)
+	target_link_libraries(pog INTERFACE --coverage)
+endif()
 
 ## Build examples if requested.
 if(POG_EXAMPLES)
