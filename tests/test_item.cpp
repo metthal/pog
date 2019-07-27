@@ -123,17 +123,6 @@ RightSideWithoutReadSymbolWhenNothingIsReturned) {
 }
 
 TEST_F(TestItem,
-RightSideWithoutReadSymbolOnFinalItem) {
-	Symbol<int> s1(1, SymbolKind::Nonterminal, "1");
-	Symbol<int> s2(2, SymbolKind::Nonterminal, "2");
-	Symbol<int> s3(3, SymbolKind::Nonterminal, "3");
-	Rule<int> rule(42, &s1, std::vector<const Symbol<int>*>{&s2, &s3}, [](std::vector<int>&&) -> int { return 0; });
-	Item<int> item(&rule, 2);
-
-	EXPECT_DEATH(item.get_right_side_without_read_symbol(), R"(Shouldn't call get_right_side_without_read_symbol\(\) on final item)");
-}
-
-TEST_F(TestItem,
 Step) {
 	Symbol<int> s1(1, SymbolKind::Nonterminal, "1");
 	Symbol<int> s2(2, SymbolKind::Nonterminal, "2");
