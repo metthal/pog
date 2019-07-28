@@ -123,10 +123,10 @@ public:
 				for (auto pattern_index : matched_patterns)
 				{
 					_tokens[pattern_index]->get_regexp()->Match(current_input.stream, 0, current_input.stream.size(), re2::RE2::Anchor::ANCHOR_START, &submatch, 1);
-					if (longest_match < submatch.size())
+					if (longest_match < static_cast<int>(submatch.size()))
 					{
 						best_match = _tokens[pattern_index].get();
-						longest_match = submatch.size();
+						longest_match = static_cast<int>(submatch.size());
 					}
 				}
 
