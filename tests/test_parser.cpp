@@ -335,7 +335,9 @@ TEST_F(TestParser,
 MoveOnlyType) {
 	Parser<std::unique_ptr<int>> p;
 
-	p.token("a").symbol("a");
+	p.token("a").symbol("a").action([](std::string_view) {
+		return std::make_unique<int>(1);
+	});
 
 	p.set_start_symbol("A");
 	p.rule("A")
@@ -343,8 +345,8 @@ MoveOnlyType) {
 			*(args[0].get()) += 1;
 			return std::move(args[0]);
 		})
-		.production("a").action([](auto&&) {
-			return std::make_unique<int>(1);
+		.production("a").action([](auto&& args) {
+			return std::move(args[0]);
 		});
 	EXPECT_TRUE(p.prepare());
 
@@ -396,4 +398,35 @@ EndTokenAction) {
 	EXPECT_TRUE(result);
 	EXPECT_EQ(result.value(), 4);
 	EXPECT_EQ(end_call_count, 1);
+}
+
+TEST_F(TestParser,
+TokenActionsCalledOnce) {
+	int a_call_count = 0;
+	Parser<int> p;
+
+	p.token("a").symbol("a").action([&](std::string_view) {
+		a_call_count++;
+		return 0;
+	});
+
+	p.set_start_symbol("A");
+	p.rule("A")
+		.production("B").action([](auto&& args) {
+			return args[0];
+		});
+	p.rule("B")
+		.production("A", "a").action([](auto&& args) {
+			return 1 + args[0];
+		})
+		.production("a").action([](auto&&) {
+			return 1;
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("aaaa");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 4);
+	EXPECT_EQ(a_call_count, 4);
 }

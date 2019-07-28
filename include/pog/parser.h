@@ -40,6 +40,7 @@ public:
 	using StateAndRuleType = StateAndRule<ValueT>;
 	using StateAndSymbolType = StateAndSymbol<ValueT>;
 	using TokenBuilderType = TokenBuilder<ValueT>;
+	using TokenMatchType = TokenMatch<ValueT>;
 	using TokenType = Token<ValueT>;
 
 	Parser() : _grammar(), _tokenizer(&_grammar), _automaton(&_grammar), _includes(&_automaton, &_grammar),
@@ -95,6 +96,7 @@ public:
 
 	std::optional<ValueT> parse(std::istream& input)
 	{
+		std::optional<TokenMatchType> token;
 		_tokenizer.push_input_stream(input);
 
 		std::deque<std::pair<std::uint32_t, std::optional<ValueT>>> stack;
@@ -102,16 +104,19 @@ public:
 
 		while (!stack.empty())
 		{
-			auto maybe_token = _tokenizer.next_token();
-			if (!maybe_token)
+			// Check if we remember token from the last iteration because we did reduction
+			// so the token was not "consumed" from the input.
+			if (!token)
 			{
-				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				throw SyntaxError(expected_symbols);
+				token = _tokenizer.next_token();
+				if (!token)
+				{
+					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+					throw SyntaxError(expected_symbols);
+				}
 			}
 
-			auto token = std::move(maybe_token).value();
-			const auto* next_symbol = token.symbol;
-
+			const auto* next_symbol = token.value().symbol;
 			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
 			if (!maybe_action)
 			{
@@ -157,12 +162,17 @@ public:
 			}
 			else if (std::holds_alternative<ShiftActionType>(action))
 			{
+				// Notice how std::move() is only around optional itself and not the whole expressions
+				// We need to do this in order to perform move together with value()
+				// See: https://en.cppreference.com/w/cpp/utility/optional/value
+				// Return by rvalue is performed only when value() is called from r-value
 				stack.emplace_back(
 					std::get<ShiftActionType>(action).state->get_index(),
-					std::move(token.value)
+					std::move(token).value().value
 				);
 
-				_tokenizer.consume_matched_token(token);
+				// We did shift so the token value is moved onto stack, "forget" the token
+				token.reset();
 			}
 			else if (std::holds_alternative<Accept>(action))
 			{

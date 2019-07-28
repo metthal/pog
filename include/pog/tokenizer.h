@@ -137,12 +137,9 @@ public:
 				if (best_match->has_action())
 					value = best_match->perform_action(std::string_view{current_input.stream.data(), static_cast<std::size_t>(longest_match)});
 
+				current_input.stream.remove_prefix(longest_match);
 				if (!best_match->has_symbol())
-				{
-					// Explicit consume because there is nothing which reduced token without symbol.
-					consume_input_characters(static_cast<std::size_t>(longest_match));
 					continue;
-				}
 
 				return TokenMatchType{best_match->get_symbol(), std::move(value), static_cast<std::size_t>(longest_match)};
 			}
@@ -154,19 +151,6 @@ public:
 		}
 
 		return std::nullopt;
-	}
-
-	void consume_matched_token(const TokenMatchType& token)
-	{
-		consume_input_characters(token.match_length);
-	}
-
-	void consume_input_characters(std::size_t count)
-	{
-		if (_input_stack.empty())
-			assert(false && "Attempting to consume token from non-existing stream");
-
-		_input_stack.back().stream.remove_prefix(count);
 	}
 
 private:

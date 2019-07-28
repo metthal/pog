@@ -41,7 +41,11 @@ int main()
 			return -args[1];
 		});
 
-	p.prepare();
+	if (auto report = p.prepare(); !report)
+	{
+		fmt::print("{}\n", report.to_string());
+		return 1;
+	}
 
 	std::stringstream input("11 + 4 * 3 + 2");
 	auto result = p.parse(input);
