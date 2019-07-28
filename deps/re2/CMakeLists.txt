@@ -28,6 +28,7 @@ set_target_properties(re2::re2 PROPERTIES
 	IMPORTED_LOCATION "${RE2_LIBRARY}"
 )
 target_link_libraries(re2::re2 INTERFACE Threads::Threads)
+add_dependencies(re2::re2 re2-dep)
 
 install(
 	FILES ${RE2_LIBRARY}
