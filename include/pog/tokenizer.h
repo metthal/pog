@@ -35,23 +35,35 @@ struct InputStream
 };
 
 template <typename ValueT>
+struct StateInfo
+{
+	std::string name;
+	std::unique_ptr<re2::RE2::Set> re_set;
+	std::vector<Token<ValueT>*> tokens;
+};
+
+template <typename ValueT>
 class Tokenizer
 {
 public:
+	static constexpr std::string_view DefaultState = "@default";
+
 	using GrammarType = Grammar<ValueT>;
+	using StateInfoType = StateInfo<ValueT>;
 	using SymbolType = Symbol<ValueT>;
 	using TokenType = Token<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 
-	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _re_set(), _input_stack(), _state_stack()
+	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _state_info(), _input_stack(), _current_state(nullptr)
 	{
-		_re_set = std::make_unique<re2::RE2::Set>(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START);
-		add_token("$", _grammar->get_end_of_input_symbol());
+		_current_state = get_or_make_state_info(std::string{DefaultState});
+		add_token("$", _grammar->get_end_of_input_symbol(), std::vector<std::string>{std::string{DefaultState}});
 	}
 
 	void prepare()
 	{
-		_re_set->Compile();
+		for (auto&& [name, info] : _state_info)
+			info.re_set->Compile();
 	}
 
 	TokenType* get_end_token() const
@@ -59,12 +71,17 @@ public:
 		return _tokens[0].get();
 	}
 
-	TokenType* add_token(const std::string& pattern, const SymbolType* symbol)
+	TokenType* add_token(const std::string& pattern, const SymbolType* symbol, const std::vector<std::string>& states)
 	{
 		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), pattern, symbol));
-		std::string error;
-		_re_set->Add(_tokens.back()->get_pattern(), &error);
-		assert(error.empty() && "Error when compiling token regexp");
+		for (const auto& state : states)
+		{
+			std::string error;
+			auto* state_info = get_or_make_state_info(state);
+			state_info->re_set->Add(_tokens.back()->get_pattern(), &error);
+			state_info->tokens.push_back(_tokens.back().get());
+			assert(error.empty() && "Error when compiling token regexp");
+		}
 		return _tokens.back().get();
 	}
 
@@ -87,16 +104,6 @@ public:
 		_input_stack.pop_back();
 	}
 
-	void push_state(std::uint32_t state)
-	{
-		_state_stack.push_back(state);
-	}
-
-	void pop_state()
-	{
-		_state_stack.pop_back();
-	}
-
 	std::optional<TokenMatchType> next_token()
 	{
 		bool repeat = true;
@@ -111,7 +118,7 @@ public:
 				// TODO: If consume_matched_token was not called we should remember the token somewhere so we don't unnecessarily match the input
 				// once again for the same token
 				std::vector<int> matched_patterns;
-				_re_set->Match(current_input.stream, &matched_patterns);
+				_current_state->re_set->Match(current_input.stream, &matched_patterns);
 
 				// Haven't matched anything, tokenization failure, we will get into endless loop
 				if (matched_patterns.empty())
@@ -122,16 +129,19 @@ public:
 				int longest_match = -1;
 				for (auto pattern_index : matched_patterns)
 				{
-					_tokens[pattern_index]->get_regexp()->Match(current_input.stream, 0, current_input.stream.size(), re2::RE2::Anchor::ANCHOR_START, &submatch, 1);
+					_current_state->tokens[pattern_index]->get_regexp()->Match(current_input.stream, 0, current_input.stream.size(), re2::RE2::Anchor::ANCHOR_START, &submatch, 1);
 					if (longest_match < static_cast<int>(submatch.size()))
 					{
-						best_match = _tokens[pattern_index].get();
+						best_match = _current_state->tokens[pattern_index];
 						longest_match = static_cast<int>(submatch.size());
 					}
 				}
 
 				if (current_input.stream.size() == 0)
 					current_input.at_end = true;
+
+				if (best_match->has_transition_to_state())
+					enter_state(best_match->get_transition_to_state());
 
 				ValueT value{};
 				if (best_match->has_action())
@@ -154,12 +164,38 @@ public:
 	}
 
 private:
+	StateInfoType* get_or_make_state_info(const std::string& name)
+	{
+		auto itr = _state_info.find(name);
+		if (itr == _state_info.end())
+			std::tie(itr, std::ignore) = _state_info.emplace(name, StateInfoType{
+				name,
+				std::make_unique<re2::RE2::Set>(re2::RE2::DefaultOptions, re2::RE2::Anchor::ANCHOR_START),
+				std::vector<TokenType*>{}
+			});
+		return &itr->second;
+	}
+
+	StateInfoType* get_state_info(const std::string& name)
+	{
+		auto itr = _state_info.find(name);
+		if (itr == _state_info.end())
+			return nullptr;
+		return &itr->second;
+	}
+
+	void enter_state(const std::string& state)
+	{
+		_current_state = get_state_info(state);
+		assert(_current_state && "Transition to unknown state in tokenizer");
+	}
+
 	const GrammarType* _grammar;
 	std::vector<std::unique_ptr<TokenType>> _tokens;
 
-	std::unique_ptr<re2::RE2::Set> _re_set;
+	std::unordered_map<std::string, StateInfoType> _state_info;
 	std::vector<InputStream> _input_stack;
-	std::vector<std::uint32_t> _state_stack;
+	StateInfoType* _current_state;
 };
 
 } // namespace pog

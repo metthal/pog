@@ -27,6 +27,7 @@ public:
 
 	bool has_symbol() const { return _symbol != nullptr; }
 	bool has_action() const { return static_cast<bool>(_action); }
+	bool has_transition_to_state() const { return static_cast<bool>(_enter_state); }
 
 	template <typename CallbackT>
 	void set_action(CallbackT&& action)
@@ -40,12 +41,23 @@ public:
 		return _action(std::forward<Args>(args)...);
 	}
 
+	void set_transition_to_state(const std::string& state)
+	{
+		_enter_state = state;
+	}
+
+	const std::string& get_transition_to_state() const
+	{
+		return _enter_state.value();
+	}
+
 private:
 	std::uint32_t _index;
 	std::string _pattern;
 	const SymbolType* _symbol;
 	std::unique_ptr<re2::RE2> _regexp;
 	CallbackType _action;
+	std::optional<std::string> _enter_state;
 };
 
 } // namespace pog

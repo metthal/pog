@@ -1,8 +1,9 @@
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <pog/parser.h>
 
 using namespace pog;
+using namespace ::testing;
 
 class TestParser : public ::testing::Test {};
 
@@ -429,4 +430,91 @@ TokenActionsCalledOnce) {
 	EXPECT_TRUE(result);
 	EXPECT_EQ(result.value(), 4);
 	EXPECT_EQ(a_call_count, 4);
+}
+
+TEST_F(TestParser,
+MultistateTokenizer) {
+	using Value = std::variant<
+		std::string,
+		std::pair<std::string, std::string>,
+		std::vector<std::pair<std::string, std::string>>
+	>;
+
+	Parser<Value> p;
+	std::string built_string;
+
+	p.token("\\s+");
+	p.token("=").symbol("=");
+	p.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("id").action([](std::string_view str) -> Value {
+		return std::string{str};
+	});
+
+	p.token(R"(")").enter_state("string").action([&](std::string_view) -> Value {
+		built_string.clear();
+		return {};
+	});
+	p.token(R"(\\n)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\n';
+		return {};
+	});
+	p.token(R"(\\t)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\t';
+		return {};
+	});
+	p.token(R"(\\r)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\r';
+		return {};
+	});
+	p.token(R"(\\x[0-9a-fA-F]{2})").states("string").action([&](std::string_view str) -> Value {
+		auto s = std::string{str.data() + 2, str.end()};
+		built_string += static_cast<char>(std::stoi(s, nullptr, 16));
+		return {};
+	});
+	p.token(R"([^\\"]+)").states("string").action([&](std::string_view str) -> Value {
+		built_string += str;
+		return {};
+	});
+	p.token(R"(")").states("string").enter_state("@default").symbol("string_literal").action([&](std::string_view) -> Value {
+		return built_string;
+	});
+
+	p.set_start_symbol("root");
+	p.rule("root")
+		.production("strings").action([](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production().action([](auto&&) -> Value {
+			return std::vector<std::pair<std::string, std::string>>{};
+		});
+	p.rule("strings")
+		.production("strings", "string").action([](auto&& args) -> Value {
+			std::get<std::vector<std::pair<std::string, std::string>>>(args[0]).push_back(
+				std::get<std::pair<std::string, std::string>>(args[1])
+			);
+			return std::move(args[0]);
+		})
+		.production("string").action([](auto&& args) -> Value {
+			return std::vector<std::pair<std::string, std::string>>{
+				std::get<std::pair<std::string, std::string>>(args[0])
+			};
+		});
+	p.rule("string")
+		.production("id", "=", "string_literal").action([](auto&& args) -> Value {
+			return std::make_pair(
+				std::get<std::string>(args[0]),
+				std::get<std::string>(args[2])
+			);
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input(
+		"abc = \"xyz\"\n"
+		"x = \"ab\\n\\t\\r\\x20cd\""
+	);
+	auto result = p.parse(input);
+	EXPECT_TRUE(result);
+	auto strings = std::get<std::vector<std::pair<std::string, std::string>>>(result.value());
+	EXPECT_EQ(strings.size(), 2u);
+	EXPECT_THAT(strings[0], Pair(Eq("abc"), Eq("xyz")));
+	EXPECT_THAT(strings[1], Pair(Eq("x"), Eq("ab\n\t\r cd")));
 }

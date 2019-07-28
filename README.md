@@ -54,7 +54,7 @@ The implemented parser generator is based on algorithms from papers _Efficient c
 Things to do before 1.0.0
 
 - [x] Tokenizer action on end of input
-- [ ] Support for states in tokenizer (`BEGIN`, `END` like behavior in flex)
+- [x] Support for states in tokenizer (`BEGIN`, `END` like behavior in flex)
 - [ ] Generate debugging report (text file parsing table, states, lookahead sets, graphviz LALR automaton, ...)
 - [ ] Windows & macOS Build
 - [x] Tests

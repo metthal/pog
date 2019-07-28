@@ -16,10 +16,10 @@ public:
 	using TokenizerType = Tokenizer<ValueT>;
 
 	TokenBuilder(GrammarType* grammar, TokenizerType* tokenizer) : _grammar(grammar), _tokenizer(tokenizer), _pattern("$"),
-		_symbol_name(), _precedence(), _action(), _fullword(false), _end_token(true) {}
+		_symbol_name(), _precedence(), _action(), _fullword(false), _end_token(true), _in_states{std::string{TokenizerType::DefaultState}}, _enter_state() {}
 
 	TokenBuilder(GrammarType* grammar, TokenizerType* tokenizer, const std::string& pattern) : _grammar(grammar), _tokenizer(tokenizer), _pattern(pattern),
-		_symbol_name(), _precedence(), _action(), _fullword(false), _end_token(false) {}
+		_symbol_name(), _precedence(), _action(), _fullword(false), _end_token(false), _in_states{std::string{TokenizerType::DefaultState}}, _enter_state() {}
 
 	void done()
 	{
@@ -27,12 +27,15 @@ public:
 		if (!_end_token)
 		{
 			auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
-			token = _tokenizer->add_token(_fullword ? fmt::format("\\b{}(\\b|$)", _pattern) : _pattern, symbol);
+			token = _tokenizer->add_token(_fullword ? fmt::format("\\b{}(\\b|$)", _pattern) : _pattern, symbol, _in_states);
 			if (symbol && _precedence)
 			{
 				const auto& prec = _precedence.value();
 				symbol->set_precedence(prec.level, prec.assoc);
 			}
+
+			if (_enter_state)
+				token->set_transition_to_state(_enter_state.value());
 		}
 		else
 			token = _tokenizer->get_end_token();
@@ -66,6 +69,19 @@ public:
 		return *this;
 	}
 
+	template <typename... Args>
+	TokenBuilder& states(Args&&... args)
+	{
+		_in_states = {std::forward<Args>(args)...};
+		return *this;
+	}
+
+	TokenBuilder& enter_state(const std::string& state)
+	{
+		_enter_state = state;
+		return *this;
+	}
+
 private:
 	GrammarType* _grammar;
 	TokenizerType* _tokenizer;
@@ -75,6 +91,8 @@ private:
 	typename TokenType::CallbackType _action;
 	bool _fullword;
 	bool _end_token;
+	std::vector<std::string> _in_states;
+	std::optional<std::string> _enter_state;
 };
 
 } // namespace pog
