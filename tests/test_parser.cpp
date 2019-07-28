@@ -369,3 +369,31 @@ MoveOnlyType) {
 		EXPECT_STREQ(e.what(), "Syntax error: Unknown symbol on input, expected one of @end, a");
 	}
 }
+
+TEST_F(TestParser,
+EndTokenAction) {
+	int end_call_count = 0;
+	Parser<int> p;
+
+	p.token("a").symbol("a");
+	p.end_token().action([&](std::string_view) {
+		end_call_count++;
+		return 0;
+	});
+
+	p.set_start_symbol("A");
+	p.rule("A")
+		.production("A", "a").action([](auto&& args) {
+			return 1 + args[0];
+		})
+		.production("a").action([](auto&&) {
+			return 1;
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("aaaa");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 4);
+	EXPECT_EQ(end_call_count, 1);
+}

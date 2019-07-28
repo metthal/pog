@@ -76,6 +76,12 @@ public:
 		return _token_builders.back();
 	}
 
+	TokenBuilderType& end_token()
+	{
+		_token_builders.emplace_back(&_grammar, &_tokenizer);
+		return _token_builders.back();
+	}
+
 	RuleBuilderType& rule(const std::string& lhs)
 	{
 		_rule_builders.emplace_back(&_grammar, lhs);
