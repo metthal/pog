@@ -7,6 +7,7 @@
 #include <pog/automaton.h>
 #include <pog/errors.h>
 #include <pog/grammar.h>
+#include <pog/html_report.h>
 #include <pog/parser_report.h>
 #include <pog/parsing_table.h>
 #include <pog/rule_builder.h>
@@ -196,6 +197,12 @@ public:
 	std::string generate_includes_relation_graph()
 	{
 		return _includes.generate_relation_graph();
+	}
+
+	void generate_html_report(const std::string& file_path) const
+	{
+		HtmlReport html_report(&_grammar, &_automaton, &_parsing_table);
+		html_report.save(file_path);
 	}
 
 private:

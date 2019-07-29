@@ -1,6 +1,9 @@
 #pragma once
 
+#include <ctime>
 #include <functional>
+#include <iomanip>
+#include <sstream>
 #include <variant>
 #include <utility>
 
@@ -56,6 +59,17 @@ auto visit_with(Variant& v, Fs&&... fs)
 	return std::visit(overloaded{
 		std::forward<Fs>(fs)...
 	}, v);
+}
+
+template <typename FormatT>
+inline std::string current_time(FormatT&& format)
+{
+	auto now = std::time(nullptr);
+	auto tm = std::localtime(&now);
+
+	std::ostringstream ss;
+	ss << std::put_time(tm, std::forward<FormatT>(format));
+	return ss.str();
 }
 
 } // namespace pog
