@@ -117,7 +117,7 @@ public:
 		}
 	}
 
-	std::string generate_graph()
+	std::string generate_graph() const
 	{
 		std::vector<std::string> states_str(_states.size());
 		std::transform(_states.begin(), _states.end(), states_str.begin(), [](const auto& state) {

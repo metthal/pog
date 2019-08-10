@@ -41,7 +41,8 @@ int main()
 			return -args[1];
 		});
 
-	if (auto report = p.prepare(); !report)
+	auto report = p.prepare();
+	if (!report)
 	{
 		fmt::print("{}\n", report.to_string());
 		return 1;

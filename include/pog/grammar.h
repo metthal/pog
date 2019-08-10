@@ -32,6 +32,26 @@ public:
 	const SymbolType* get_end_of_input_symbol() const { return _internal_end_of_input; }
 	const RuleType* get_start_rule() const { return _start_rule; }
 
+	std::vector<const SymbolType*> get_terminal_symbols() const
+	{
+		std::vector<const SymbolType*> result;
+		transform_if(_symbols.begin(), _symbols.end(), std::back_inserter(result),
+			[](const auto& s) { return s->is_terminal() || s->is_end(); },
+			[](const auto& s) { return s.get(); }
+		);
+		return result;
+	}
+
+	std::vector<const SymbolType*> get_nonterminal_symbols() const
+	{
+		std::vector<const SymbolType*> result;
+		transform_if(_symbols.begin(), _symbols.end(), std::back_inserter(result),
+			[](const auto& s) { return s->is_nonterminal(); },
+			[](const auto& s) { return s.get(); }
+		);
+		return result;
+	}
+
 	SymbolType* get_symbol(const std::string& name) const
 	{
 		auto itr = _name_to_symbol.find(name);

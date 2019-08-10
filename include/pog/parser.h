@@ -24,15 +24,21 @@
 namespace pog {
 
 template <typename ValueT>
+class HtmlReport;
+
+template <typename ValueT>
 class Parser
 {
 public:
+	friend class HtmlReport<ValueT>;
+
 	using ActionType = Action<ValueT>;
 	using ShiftActionType = Shift<ValueT>;
 	using ReduceActionType = Reduce<ValueT>;
 
 	using BacktrackingInfoType = BacktrackingInfo<ValueT>;
 	using ItemType = Item<ValueT>;
+	using ParserReportType = ParserReport<ValueT>;
 	using RuleBuilderType = RuleBuilder<ValueT>;
 	using RuleType = Rule<ValueT>;
 	using StateType = State<ValueT>;
@@ -53,9 +59,8 @@ public:
 	Parser(const Parser<ValueT>&) = delete;
 	Parser(Parser<ValueT>&&) noexcept = default;
 
-	ParserReport<ValueT> prepare()
+	const ParserReportType& prepare()
 	{
-		ParserReport<ValueT> report;
 		for (auto& tb : _token_builders)
 			tb.done();
 		for (auto& rb : _rule_builders)
@@ -66,9 +71,9 @@ public:
 		_read_operation.calculate();
 		_follow_operation.calculate();
 		_lookahead_operation.calculate();
-		_parsing_table.calculate(report);
+		_parsing_table.calculate(_report);
 		_tokenizer.prepare();
-		return report;
+		return _report;
 	}
 
 	TokenBuilderType& token(const std::string& pattern)
@@ -211,6 +216,8 @@ private:
 
 	std::vector<RuleBuilderType> _rule_builders;
 	std::vector<TokenBuilderType> _token_builders;
+
+	ParserReportType _report;
 };
 
 } // namespace pog

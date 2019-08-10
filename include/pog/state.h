@@ -70,13 +70,13 @@ public:
 			}) == 1;
 	}
 
-	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>", std::string_view sep = "<*>") const
+	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>", std::string_view sep = "<*>", const std::string& newline = "\n") const
 	{
 		std::vector<std::string> item_strings(_items.size());
 		std::transform(_items.begin(), _items.end(), item_strings.begin(), [&](const auto& item) {
 			return item->to_string(arrow, eps, sep);
 		});
-		return fmt::format("{}", fmt::join(item_strings.begin(), item_strings.end(), "\n"));
+		return fmt::format("{}", fmt::join(item_strings.begin(), item_strings.end(), newline));
 	}
 
 	std::vector<const ItemType*> get_production_items() const
