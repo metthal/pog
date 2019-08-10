@@ -1,6 +1,7 @@
 @PACKAGE_INIT@
 
 set(POG_DOWNLOAD_RE2 @POG_DOWNLOAD_RE2@)
+set(POG_DOWNLOAD_FMT @POG_DOWNLOAD_FMT@)
 
 if(POG_DOWNLOAD_RE2)
 	find_package(Threads REQUIRED)
@@ -15,6 +16,16 @@ else()
 	find_package(re2 REQUIRED)
 endif()
 
-find_package(fmt REQUIRED)
+if(POG_DOWNLOAD_FMT)
+	add_library(fmt::fmt STATIC IMPORTED)
+	set_target_properties(fmt::fmt PROPERTIES
+		INTERFACE_INCLUDE_DIRECTORIES @PACKAGE_FMT_INCLUDE_DIR@
+		IMPORTED_LOCATION @PACKAGE_FMT_LIBRARY@
+	)
+else()
+	list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+	find_package(fmt REQUIRED)
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/pog-targets.cmake)
 check_required_components(pog)

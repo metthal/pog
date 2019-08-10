@@ -1,0 +1,41 @@
+include(GNUInstallDirs)
+include(ExternalProject)
+
+set(FMT_INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/fmt)
+set(FMT_INCLUDE_DIR       ${FMT_INSTALL_DIR}/include)
+set(FMT_INSTALLED_LIBRARY ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libfmt.a)
+set(FMT_LIBRARY           ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libpog_fmt.a)
+
+ExternalProject_Add(
+	fmt-dep
+	PREFIX "fmt"
+	URL "https://github.com/fmtlib/fmt/archive/5.3.0.zip"
+	URL_HASH SHA256=2ba1469c1f7677e70cb32bcd7dd0907e6952e16a161f07e05c7ffa388643b607
+	CMAKE_ARGS
+		-DCMAKE_INSTALL_PREFIX=${FMT_INSTALL_DIR}
+		-DCMAKE_BUILD_TYPE=Release
+		-DFMT_TEST=OFF
+		-DFMT_DOC=OFF
+)
+
+ExternalProject_Add_Step(
+	fmt-dep rename
+	DEPENDEES install
+	COMMAND ${CMAKE_COMMAND} -E rename ${FMT_INSTALLED_LIBRARY} ${FMT_LIBRARY}
+)
+
+add_library(fmt::fmt STATIC IMPORTED GLOBAL)
+set_target_properties(fmt::fmt PROPERTIES
+	INTERFACE_INCLUDE_DIRECTORIES "${FMT_INCLUDE_DIR}"
+	IMPORTED_LOCATION "${FMT_LIBRARY}"
+)
+add_dependencies(fmt::fmt fmt-dep)
+
+install(
+	FILES ${FMT_LIBRARY}
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+)
+install(
+	DIRECTORY ${FMT_INCLUDE_DIR}/fmt/
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/pog/fmt
+)

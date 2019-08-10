@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 ## Options.
 option(POG_DOWNLOAD_RE2 "Download RE2 during build process" OFF)
+option(POG_DOWNLOAD_FMT "Download fmt during build process" OFF)
 option(POG_EXAMPLES     "Build examples"                    OFF)
 option(POG_TESTS        "Build tests"                       OFF)
 option(POG_COVERAGE     "Enable coverage"                   OFF)
@@ -37,12 +38,7 @@ set(POG_PC_INSTALL_FILES     "${POG_PC_CONFIG_FILE}")
 
 ## Requirements
 ### Threads - because of RE2
-### fmt - does not contain reporting thus we report manually
 find_package(Threads REQUIRED)
-find_package(fmt REQUIRED)
-if(fmt_FOUND)
-	message(STATUS "Found libfmt")
-endif()
 
 ## If RE2 is not being downloaded, try to find it using find_package().
 if(NOT POG_DOWNLOAD_RE2)
@@ -53,9 +49,21 @@ if(NOT POG_DOWNLOAD_RE2)
 	endif()
 	## Install our custom finder in case user system does not contain one.
 	list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findre2.cmake")
-else()
-	add_subdirectory(deps)
 endif()
+
+## If fmt is not being downloaded, try to find it using find_package().
+if(NOT POG_DOWNLOAD_FMT)
+	find_package(fmt REQUIRED)
+	if(fmt_FOUND)
+		message(STATUS "Found libfmt")
+	endif()
+else()
+	## Install our custom finder in case user system does not contain one.
+	list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/fmt/Findfmt.cmake")
+endif()
+
+## Add deps folder to resolve downloadable dependencies.
+add_subdirectory(deps)
 
 ## Library.
 add_library(pog INTERFACE)
@@ -86,11 +94,22 @@ endif()
 if(POG_DOWNLOAD_RE2)
 	set(RE2_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
 	set(RE2_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libpog_re2.a")
-	set(POG_PC_REQUIREMENT "Libs: -L\$\{libdir\} -lpog_re2 -lpthread -lfmt")
+	set(POG_PC_REQUIREMENT "Libs: -L\$\{libdir\} -lpog_re2 -lpthread")
 else()
 	set(RE2_INCLUDE_DIR "<NOT_SET>")
 	set(RE2_LIBRARY "<NOT_SET>")
-	set(POG_PC_REQUIREMENT "Requires: re2\nLibs: -L\$\{libdir\} -lfmt")
+	set(POG_PC_REQUIREMENT "Requires: re2\nLibs: -L\$\{libdir\}")
+endif()
+
+## Handle also fmt in pkg-config file.
+if(POG_DOWNLOAD_FMT)
+	set(FMT_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
+	set(FMT_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libpog_fmt.a")
+	set(POG_PC_REQUIREMENT "${POG_PC_REQUIREMENT} -lpog_fmt")
+else()
+	set(FMT_INCLUDE_DIR "<NOT_SET>")
+	set(FMT_LIBRARY "<NOT_SET>")
+	set(POG_PC_REQUIREMENT "${POG_PC_REQUIREMENT} -lfmt")
 endif()
 
 ## Create pog-config.cmake
@@ -100,6 +119,7 @@ configure_package_config_file(
 	INSTALL_DESTINATION ${POG_INSTALL_CMAKE_DIR}
 	PATH_VARS
 		RE2_INCLUDE_DIR RE2_LIBRARY
+		FMT_INCLUDE_DIR FMT_LIBRARY
 )
 
 ## Create pog-config-version.cmake
