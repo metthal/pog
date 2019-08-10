@@ -70,7 +70,7 @@ public:
 			}) == 1;
 	}
 
-	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>", std::string_view sep = "<*>", std::string_view newline = "\n") const
+	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>", std::string_view sep = "<*>", const std::string& newline = "\n") const
 	{
 		std::vector<std::string> item_strings(_items.size());
 		std::transform(_items.begin(), _items.end(), item_strings.begin(), [&](const auto& item) {
