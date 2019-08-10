@@ -55,7 +55,7 @@ Things to do before 1.0.0
 
 - [x] Tokenizer action on end of input
 - [x] Support for states in tokenizer (`BEGIN`, `END` like behavior in flex)
-- [ ] Generate debugging report (text file parsing table, states, lookahead sets, graphviz LALR automaton, ...)
+- [x] Generate debugging report (text file parsing table, states, lookahead sets, graphviz LALR automaton, ...)
 - [ ] Windows & macOS Build
 - [x] Tests
 - [x] Code Coverage
