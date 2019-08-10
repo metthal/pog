@@ -97,7 +97,7 @@ public:
 		if (auto itr = _name_to_symbol.find(name); itr != _name_to_symbol.end())
 			return itr->second;
 
-		_symbols.push_back(std::make_unique<SymbolType>(_symbols.size(), kind, name));
+		_symbols.push_back(std::make_unique<SymbolType>(static_cast<std::uint32_t>(_symbols.size()), kind, name));
 		_name_to_symbol.emplace(_symbols.back()->get_name(), _symbols.back().get());
 		return _symbols.back().get();
 	}
@@ -105,7 +105,7 @@ public:
 	template <typename CallbackT>
 	RuleType* add_rule(const SymbolType* lhs, const std::vector<const SymbolType*>& rhs, CallbackT&& action)
 	{
-		_rules.push_back(std::make_unique<RuleType>(_rules.size(), lhs, rhs, std::forward<CallbackT>(action)));
+		_rules.push_back(std::make_unique<RuleType>(static_cast<std::uint32_t>(_rules.size()), lhs, rhs, std::forward<CallbackT>(action)));
 		return _rules.back().get();
 	}
 
@@ -202,7 +202,7 @@ public:
 				for (const auto* rule : rules)
 				{
 					auto tmp = first(rule->get_rhs(), visited_lhss);
-					std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+					std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 				}
 			}
 
@@ -219,7 +219,7 @@ public:
 		for (const auto* sym : seq)
 		{
 			auto tmp = first(sym, visited_lhss);
-			std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+			std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 			if (!empty(sym))
 				break;
 		}
@@ -252,7 +252,7 @@ public:
 					{
 						std::vector<const SymbolType*> tail(itr + 1, end);
 						auto tmp = first(tail);
-						std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+						std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 						can_be_last_in_production = empty(tail);
 					}
 
@@ -260,7 +260,7 @@ public:
 					if (can_be_last_in_production)
 					{
 						auto tmp = follow(rule->get_lhs(), visited);
-						std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+						std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 					}
 				}
 			}

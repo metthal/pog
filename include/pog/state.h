@@ -113,14 +113,14 @@ public:
 		return !(*this == rhs);
 	}
 
-	const std::unordered_map<const SymbolType*, const State*>& get_transitions() const { return _transitions; }
-	const std::unordered_map<const SymbolType*, std::vector<const State*>>& get_back_transitions() const { return _back_transitions; }
+	const std::map<const SymbolType*, const State*, SymbolLess<ValueT>>& get_transitions() const { return _transitions; }
+	const std::map<const SymbolType*, std::vector<const State*>, SymbolLess<ValueT>>& get_back_transitions() const { return _back_transitions; }
 
 private:
 	std::uint32_t _index;
 	std::vector<std::unique_ptr<ItemType>> _items;
-	std::unordered_map<const SymbolType*, const State*> _transitions;
-	std::unordered_map<const SymbolType*, std::vector<const State*>> _back_transitions;
+	std::map<const SymbolType*, const State*, SymbolLess<ValueT>> _transitions;
+	std::map<const SymbolType*, std::vector<const State*>, SymbolLess<ValueT>> _back_transitions;
 };
 
 } // namespace pog

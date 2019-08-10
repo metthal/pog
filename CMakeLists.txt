@@ -68,7 +68,11 @@ add_subdirectory(deps)
 ## Library.
 add_library(pog INTERFACE)
 target_sources(pog INTERFACE ${POG_FILES})
-target_compile_options(pog INTERFACE -Wall -Wextra)
+if(MSVC)
+	target_compile_options(pog INTERFACE /W3)
+else()
+	target_compile_options(pog INTERFACE -Wall -Wextra)
+endif()
 target_include_directories(pog INTERFACE
 	"$<BUILD_INTERFACE:${POG_INCLUDE_DIR}>"
 	"$<INSTALL_INTERFACE:${POG_INSTALL_INCLUDE_DIR}>"
@@ -93,7 +97,7 @@ endif()
 ## Also we need to set proper requirements for pkg-config file.
 if(POG_DOWNLOAD_RE2)
 	set(RE2_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
-	set(RE2_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libpog_re2.a")
+	set(RE2_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pog_re2${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	set(POG_PC_REQUIREMENT "Libs: -L\$\{libdir\} -lpog_re2 -lpthread")
 else()
 	set(RE2_INCLUDE_DIR "<NOT_SET>")
@@ -104,7 +108,7 @@ endif()
 ## Handle also fmt in pkg-config file.
 if(POG_DOWNLOAD_FMT)
 	set(FMT_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
-	set(FMT_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libpog_fmt.a")
+	set(FMT_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}//${CMAKE_STATIC_LIBRARY_PREFIX}pog_fmt${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	set(POG_PC_REQUIREMENT "${POG_PC_REQUIREMENT} -lpog_fmt")
 else()
 	set(FMT_INCLUDE_DIR "<NOT_SET>")

@@ -2,8 +2,16 @@ include(ExternalProject)
 
 set(RE2_INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/re2)
 set(RE2_INCLUDE_DIR       ${RE2_INSTALL_DIR}/include)
-set(RE2_INSTALLED_LIBRARY ${RE2_INSTALL_DIR}/lib/libre2.a)
-set(RE2_LIBRARY           ${RE2_INSTALL_DIR}/lib/libpog_re2.a)
+set(RE2_INSTALLED_LIBRARY ${RE2_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}re2${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(RE2_LIBRARY           ${RE2_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}pog_re2${CMAKE_STATIC_LIBRARY_SUFFIX})
+
+if(MSVC)
+	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
+	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
+else()
+	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
+	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
+endif()
 
 ExternalProject_Add(
 	re2-dep
@@ -14,6 +22,10 @@ ExternalProject_Add(
 		-DCMAKE_INSTALL_PREFIX=${RE2_INSTALL_DIR}
 		-DCMAKE_BUILD_TYPE=Release
 		-DRE2_BUILD_TESTING=OFF
+	BUILD_COMMAND
+		${RE2_BUILD_COMMAND}
+	INSTALL_COMMAND
+		${RE2_INSTALL_COMMAND}
 )
 
 ExternalProject_Add_Step(

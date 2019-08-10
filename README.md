@@ -1,6 +1,7 @@
 # Pog
 
 [![Build Status](https://travis-ci.org/metthal/pog.svg?branch=master)](https://travis-ci.org/metthal/pog)
+[![Build Status](https://ci.appveyor.com/api/projects/status/84heo43wj4mqoo5y/branch/master?svg=true)](https://ci.appveyor.com/project/metthal/pog/branch/master)
 [![codecov](https://codecov.io/gh/metthal/pog/branch/master/graph/badge.svg)](https://codecov.io/gh/metthal/pog)
 
 

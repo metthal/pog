@@ -84,7 +84,7 @@ public:
 			auto* state = to_process.front();
 			to_process.pop_front();
 
-			std::unordered_map<const SymbolType*, StateType> prepared_states;
+			std::map<const SymbolType*, StateType, SymbolLess<ValueT>> prepared_states;
 			for (const auto& item : *state)
 			{
 				if (item->is_final())
@@ -105,7 +105,7 @@ public:
 
 			for (auto&& [symbol, prepared_state] : prepared_states)
 			{
-				prepared_state.set_index(_states.size());
+				prepared_state.set_index(static_cast<std::uint32_t>(_states.size()));
 				closure(prepared_state);
 				auto result = add_state(std::move(prepared_state));
 				auto* target_state = result.first;

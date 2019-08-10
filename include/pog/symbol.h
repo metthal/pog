@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -37,6 +38,16 @@ private:
 	SymbolKind _kind;
 	std::string _name;
 	std::optional<Precedence> _precedence;
+};
+
+
+template <typename ValueT>
+struct SymbolLess
+{
+	bool operator()(const Symbol<ValueT>* lhs, const Symbol<ValueT>* rhs) const
+	{
+		return lhs->get_index() < rhs->get_index();
+	}
 };
 
 } // namespace pog

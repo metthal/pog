@@ -39,7 +39,7 @@ Action) {
 	Token<int> t(1, "abc");
 	t.set_action([&](std::string_view str) -> int {
 		called = true;
-		return str.length();
+		return static_cast<int>(str.length());
 	});
 
 	EXPECT_TRUE(t.has_action());

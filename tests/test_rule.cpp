@@ -81,7 +81,7 @@ PerformAction) {
 	Symbol<int> s1(1, SymbolKind::Nonterminal, "1");
 	Rule<int> rule(42, &s1, std::vector<const Symbol<int>*>{}, [&](std::vector<int>&& args) -> int {
 		called = true;
-		return args.size();
+		return static_cast<int>(args.size());
 	});
 
 	EXPECT_EQ(rule.perform_action(std::vector<int>{1, 2, 3, 4}), 4);
