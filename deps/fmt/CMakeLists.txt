@@ -9,7 +9,7 @@ set(FMT_LIBRARY                 ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMA
 
 if(MSVC)
 	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
-	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release)
+	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
 	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
