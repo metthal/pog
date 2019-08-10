@@ -4,6 +4,7 @@
 * Token actions are now always called exactly once for each individual token
 * Tokenizer now supports states
 * Generation of HTML report for parsers
+* Added support for build on Windows (using MSVC)
 
 # v0.1.0 (2019-07-27)
 
