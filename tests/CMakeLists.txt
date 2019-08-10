@@ -16,4 +16,8 @@ set(TEST_FILES
 )
 
 add_executable(pog_tests ${TEST_FILES})
+if (MSVC)
+# This flag is needed for MSVC because test_parser.cpp exceeds limit of number of section in Debug x64 build
+	set_source_files_properties(test_parser.cpp PROPERTIES COMPILE_FLAGS /bigobj)
+endif()
 target_link_libraries(pog_tests pog googletest)

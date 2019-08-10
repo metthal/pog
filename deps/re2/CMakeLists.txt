@@ -6,7 +6,7 @@ set(RE2_INSTALLED_LIBRARY ${RE2_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}r
 set(RE2_LIBRARY           ${RE2_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}pog_re2${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 if(MSVC)
-	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- -m)
+	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release)
 else()
 	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
