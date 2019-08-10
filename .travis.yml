@@ -13,7 +13,7 @@ matrix:
         - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
     - os: osx
       osx_image: xcode11
-      install: brew install fmt re2
+      install: brew install fmt re2 tree
 
 script:
   - mkdir build && cd build
