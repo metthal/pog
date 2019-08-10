@@ -34,7 +34,7 @@ ExternalProject_Add(
 ExternalProject_Add_Step(
 	fmt-dep rename
 	DEPENDEES install
-	COMMAND ${CMAKE_COMMAND} -E rename $<IF:$<CONFIG:Debug>:${FMT_INSTALLED_LIBRARY_DEBUG},${FMT_INSTALLED_LIBRARY}> ${FMT_LIBRARY}
+	COMMAND ${CMAKE_COMMAND} -E rename $<IF:$<CONFIG:Debug>,${FMT_INSTALLED_LIBRARY_DEBUG},${FMT_INSTALLED_LIBRARY}> ${FMT_LIBRARY}
 )
 
 add_library(fmt::fmt STATIC IMPORTED GLOBAL)
