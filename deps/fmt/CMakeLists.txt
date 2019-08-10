@@ -3,8 +3,16 @@ include(ExternalProject)
 
 set(FMT_INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/fmt)
 set(FMT_INCLUDE_DIR       ${FMT_INSTALL_DIR}/include)
-set(FMT_INSTALLED_LIBRARY ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libfmt.a)
-set(FMT_LIBRARY           ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libpog_fmt.a)
+set(FMT_INSTALLED_LIBRARY ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}fmt${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(FMT_LIBRARY           ${FMT_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pog_fmt${CMAKE_STATIC_LIBRARY_SUFFIX})
+
+if(MSVC)
+	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- -m)
+	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release)
+else()
+	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
+	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
+endif()
 
 ExternalProject_Add(
 	fmt-dep
@@ -16,6 +24,10 @@ ExternalProject_Add(
 		-DCMAKE_BUILD_TYPE=Release
 		-DFMT_TEST=OFF
 		-DFMT_DOC=OFF
+	BUILD_COMMAND
+		${FMT_BUILD_COMMAND}
+	INSTALL_COMMAND
+		${FMT_INSTALL_COMMAND}
 )
 
 ExternalProject_Add_Step(

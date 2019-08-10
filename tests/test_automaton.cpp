@@ -171,8 +171,8 @@ ConstructStates) {
 
 	EXPECT_EQ(a.get_states().size(), 5u);
 	EXPECT_EQ(a.get_states()[0]->to_string(), "@start -> <*> S @end\nS -> <*> a S b\nS -> <*> <eps>");
-	EXPECT_EQ(a.get_states()[1]->to_string(), "S -> a <*> S b\nS -> <*> a S b\nS -> <*> <eps>");
-	EXPECT_EQ(a.get_states()[2]->to_string(), "@start -> S <*> @end");
+	EXPECT_EQ(a.get_states()[1]->to_string(), "@start -> S <*> @end");
+	EXPECT_EQ(a.get_states()[2]->to_string(), "S -> a <*> S b\nS -> <*> a S b\nS -> <*> <eps>");
 	EXPECT_EQ(a.get_states()[3]->to_string(), "S -> a S <*> b");
 	EXPECT_EQ(a.get_states()[4]->to_string(), "S -> a S b <*>");
 }

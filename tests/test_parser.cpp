@@ -466,7 +466,7 @@ MultistateTokenizer) {
 		return {};
 	});
 	p.token(R"(\\x[0-9a-fA-F]{2})").states("string").action([&](std::string_view str) -> Value {
-		auto s = std::string{str.data() + 2, str.end()};
+		auto s = std::string{str.begin() + 2, str.end()};
 		built_string += static_cast<char>(std::stoi(s, nullptr, 16));
 		return {};
 	});

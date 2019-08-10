@@ -73,7 +73,7 @@ public:
 
 	TokenType* add_token(const std::string& pattern, const SymbolType* symbol, const std::vector<std::string>& states)
 	{
-		_tokens.push_back(std::make_unique<TokenType>(_tokens.size(), pattern, symbol));
+		_tokens.push_back(std::make_unique<TokenType>(static_cast<std::uint32_t>(_tokens.size()), pattern, symbol));
 		for (const auto& state : states)
 		{
 			std::string error;

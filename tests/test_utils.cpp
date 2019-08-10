@@ -55,8 +55,8 @@ accumulate_if) {
 
 TEST_F(TestUtils,
 hash_combine) {
-	EXPECT_EQ(pog::hash_combine(1, 2), static_cast<std::size_t>(0x28CD94BF13));
-	EXPECT_EQ(pog::hash_combine(1, 3), static_cast<std::size_t>(0x28CD94BF10));
-	EXPECT_EQ(pog::hash_combine(2, 1), static_cast<std::size_t>(0x28CD94BF53));
-	EXPECT_EQ(pog::hash_combine(1, 2, 3, 4, 5), static_cast<std::size_t>(0xA3B7D45EE9DC9C));
+	EXPECT_EQ(pog::hash_combine(1, 2), pog::hash_combine(1, 2));
+	EXPECT_NE(pog::hash_combine(1, 2), pog::hash_combine(1, 3));
+	EXPECT_NE(pog::hash_combine(1, 2), pog::hash_combine(2, 1));
+	EXPECT_NE(pog::hash_combine(1, 2), pog::hash_combine(1, 2, 3));
 }
