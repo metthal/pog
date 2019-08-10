@@ -42,7 +42,6 @@ int main()
 		});
 
 	auto report = p.prepare();
-	p.generate_html_report("calculator.html");
 	if (!report)
 	{
 		fmt::print("{}\n", report.to_string());
