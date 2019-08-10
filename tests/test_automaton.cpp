@@ -1,3 +1,5 @@
+#include <cctype>
+
 #include <gtest/gtest.h>
 
 #include <pog/automaton.h>
