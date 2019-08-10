@@ -202,7 +202,7 @@ public:
 				for (const auto* rule : rules)
 				{
 					auto tmp = first(rule->get_rhs(), visited_lhss);
-					std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+					std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 				}
 			}
 
@@ -219,7 +219,7 @@ public:
 		for (const auto* sym : seq)
 		{
 			auto tmp = first(sym, visited_lhss);
-			std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+			std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 			if (!empty(sym))
 				break;
 		}
@@ -252,7 +252,7 @@ public:
 					{
 						std::vector<const SymbolType*> tail(itr + 1, end);
 						auto tmp = first(tail);
-						std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+						std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 						can_be_last_in_production = empty(tail);
 					}
 
@@ -260,7 +260,7 @@ public:
 					if (can_be_last_in_production)
 					{
 						auto tmp = follow(rule->get_lhs(), visited);
-						std::set_union(result.begin(), result.end(), tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
+						std::copy(tmp.begin(), tmp.end(), std::inserter(result, result.begin()));
 					}
 				}
 			}
