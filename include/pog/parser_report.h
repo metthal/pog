@@ -15,9 +15,9 @@ struct ShiftReduceConflict
 	const Symbol<ValueT>* symbol;
 	const Rule<ValueT>* rule;
 
-	std::string to_string() const
+	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>") const
 	{
-		return fmt::format("Shift-reduce conflict of symbol \'{}\' and rule \'{}\' in state {}", symbol->get_name(), rule->to_string(), state->get_index());
+		return fmt::format("Shift-reduce conflict of symbol \'{}\' and rule \'{}\' in state {}", symbol->get_name(), rule->to_string(arrow, eps), state->get_index());
 	}
 };
 
@@ -28,9 +28,9 @@ struct ReduceReduceConflict
 	const Rule<ValueT>* rule1;
 	const Rule<ValueT>* rule2;
 
-	std::string to_string() const
+	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>") const
 	{
-		return fmt::format("Reduce-reduce conflict of rule \'{}\' and rule \'{}\' in state {}", rule1->to_string(), rule2->to_string(), state->get_index());
+		return fmt::format("Reduce-reduce conflict of rule \'{}\' and rule \'{}\' in state {}", rule1->to_string(arrow, eps), rule2->to_string(arrow, eps), state->get_index());
 	}
 };
 
@@ -68,13 +68,13 @@ public:
 		_issues.push_back(ReduceReduceConflictType{state, rule1, rule2});
 	}
 
-	std::string to_string() const
+	std::string to_string(std::string_view arrow = "->", std::string_view eps = "<eps>") const
 	{
 		std::vector<std::string> issues_str(_issues.size());
-		std::transform(_issues.begin(), _issues.end(), issues_str.begin(), [](const auto& issue) {
+		std::transform(_issues.begin(), _issues.end(), issues_str.begin(), [&](const auto& issue) {
 			return visit_with(issue,
-				[](const ShiftReduceConflictType& sr) { return sr.to_string(); },
-				[](const ReduceReduceConflictType& rr) { return rr.to_string(); }
+				[&](const ShiftReduceConflictType& sr) { return sr.to_string(arrow, eps); },
+				[&](const ReduceReduceConflictType& rr) { return rr.to_string(arrow, eps); }
 			);
 		});
 		return fmt::format("{}", fmt::join(issues_str.begin(), issues_str.end(), "\n"));

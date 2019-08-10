@@ -7,7 +7,6 @@
 #include <pog/automaton.h>
 #include <pog/errors.h>
 #include <pog/grammar.h>
-#include <pog/html_report.h>
 #include <pog/parser_report.h>
 #include <pog/parsing_table.h>
 #include <pog/rule_builder.h>
@@ -25,15 +24,21 @@
 namespace pog {
 
 template <typename ValueT>
+class HtmlReport;
+
+template <typename ValueT>
 class Parser
 {
 public:
+	friend class HtmlReport<ValueT>;
+
 	using ActionType = Action<ValueT>;
 	using ShiftActionType = Shift<ValueT>;
 	using ReduceActionType = Reduce<ValueT>;
 
 	using BacktrackingInfoType = BacktrackingInfo<ValueT>;
 	using ItemType = Item<ValueT>;
+	using ParserReportType = ParserReport<ValueT>;
 	using RuleBuilderType = RuleBuilder<ValueT>;
 	using RuleType = Rule<ValueT>;
 	using StateType = State<ValueT>;
@@ -54,9 +59,8 @@ public:
 	Parser(const Parser<ValueT>&) = delete;
 	Parser(Parser<ValueT>&&) noexcept = default;
 
-	ParserReport<ValueT> prepare()
+	const ParserReportType& prepare()
 	{
-		ParserReport<ValueT> report;
 		for (auto& tb : _token_builders)
 			tb.done();
 		for (auto& rb : _rule_builders)
@@ -67,9 +71,9 @@ public:
 		_read_operation.calculate();
 		_follow_operation.calculate();
 		_lookahead_operation.calculate();
-		_parsing_table.calculate(report);
+		_parsing_table.calculate(_report);
 		_tokenizer.prepare();
-		return report;
+		return _report;
 	}
 
 	TokenBuilderType& token(const std::string& pattern)
@@ -199,12 +203,6 @@ public:
 		return _includes.generate_relation_graph();
 	}
 
-	void generate_html_report(const std::string& file_path) const
-	{
-		HtmlReport html_report(&_grammar, &_automaton, &_parsing_table);
-		html_report.save(file_path);
-	}
-
 private:
 	Grammar<ValueT> _grammar;
 	Tokenizer<ValueT> _tokenizer;
@@ -218,6 +216,8 @@ private:
 
 	std::vector<RuleBuilderType> _rule_builders;
 	std::vector<TokenBuilderType> _token_builders;
+
+	ParserReportType _report;
 };
 
 } // namespace pog
