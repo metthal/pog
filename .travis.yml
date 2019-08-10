@@ -1,10 +1,19 @@
 language: cpp
 
-os: linux
-dist: bionic
-
-before_install:
-  - sudo apt-get install -y lcov libfmt-dev libre2-dev tree
+matrix:
+  include:
+    - os: linux
+      dist: bionic
+      install: sudo apt-get install -y lcov libfmt-dev libre2-dev tree
+      after_success:
+        - cd build && rm -rf *
+        - cmake -DCMAKE_BUILD_TYPE=Debug -DPOG_TESTS=ON -DPOG_COVERAGE=ON ..
+        - cmake --build . -- -j
+        - cd .. && ./coverage.sh
+        - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+    - os: osx
+      osx_image: xcode11
+      install: brew install fmt re2 tree
 
 script:
   - mkdir build && cd build
@@ -12,11 +21,6 @@ script:
   - cmake --build . --target install -- -j
   - ./tests/pog_tests
   - tree ../install
-  - rm -rf *
-  - cmake -DCMAKE_BUILD_TYPE=Debug -DPOG_TESTS=ON -DPOG_COVERAGE=ON ..
-  - cmake --build . -- -j
-  - cd .. && ./coverage.sh
-  - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
 branches:
   only:
