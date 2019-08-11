@@ -115,8 +115,7 @@ public:
 			auto& current_input = _input_stack.back();
 			if (!current_input.at_end)
 			{
-				// TODO: If consume_matched_token was not called we should remember the token somewhere so we don't unnecessarily match the input
-				// once again for the same token
+				// Matched patterns doesn't have to be sorted (used to be in older re2 versions) but we shouldn't count on that
 				std::vector<int> matched_patterns;
 				_current_state->re_set->Match(current_input.stream, &matched_patterns);
 
@@ -134,6 +133,12 @@ public:
 					{
 						best_match = _current_state->tokens[pattern_index];
 						longest_match = static_cast<int>(submatch.size());
+					}
+					// In case of equal matches, index of tokens chooses which one is it (lower index has higher priority)
+					else if (longest_match == static_cast<int>(submatch.size()))
+					{
+						if (!best_match || best_match->get_index() > pattern_index)
+							best_match = _current_state->tokens[pattern_index];
 					}
 				}
 
