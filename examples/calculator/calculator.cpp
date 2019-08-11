@@ -22,24 +22,24 @@ int main()
 
 	p.set_start_symbol("E");
 	p.rule("E") // E ->
-		.production("E", "+", "E").action([](auto&& args) { // E + E
+		.production("E", "+", "E", [](auto&& args) { // E + E
 			return args[0] + args[2];
 		})
-		.production("E", "-", "E").action([](auto&& args) { // E - E
+		.production("E", "-", "E", [](auto&& args) { // E - E
 			return args[0] - args[2];
 		})
-		.production("E", "*", "E").action([](auto&& args) { // E * E
+		.production("E", "*", "E", [](auto&& args) { // E * E
 			return args[0] * args[2];
 		})
-		.production("(", "E", ")").action([](auto&& args) { // ( E )
+		.production("(", "E", ")", [](auto&& args) { // ( E )
 			return args[1];
 		})
-		.production("num").action([](auto&& args) { // num
+		.production("num", [](auto&& args) { // num
 			return args[0];
 		})
-		.production("-", "E").precedence(3, Associativity::Right).action([](auto&& args) { // - E
+		.production("-", "E", [](auto&& args) { // - E
 			return -args[1];
-		});
+		}).precedence(3, Associativity::Right);
 
 	auto report = p.prepare();
 	if (!report)

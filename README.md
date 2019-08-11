@@ -18,8 +18,6 @@ If you are familiar with tools like yacc + lex or bison + flex then this should 
 * [re2](https://github.com/google/re2)
 * [fmt](https://github.com/fmtlib/fmt)
 
-Windows and macOS are not officially supported yet (might require some modifications of CMake) but will be guaranteed in the future.
-
 ## How To Build
 
 You can run CMake to build examples to see how Pog works.
