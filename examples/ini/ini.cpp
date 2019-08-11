@@ -81,25 +81,25 @@ int main(int argc, char* argv[])
 
 	p.set_start_symbol("root");
 	p.rule("root")
-		.production("attrs", "sections").action([](auto&& args) -> ParserType {
+		.production("attrs", "sections", [](auto&& args) -> ParserType {
 			return Document{
 				Section{std::string{}, std::get<std::vector<Attribute>>(args[0])},
 				std::get<std::vector<Section>>(args[1])
 			};
 		})
-		.production("attrs").action([](auto&& args) -> ParserType {
+		.production("attrs", [](auto&& args) -> ParserType {
 			return Document{
 				Section{std::string{}, std::get<std::vector<Attribute>>(args[0])},
 				std::vector<Section>{}
 			};
 		})
-		.production("sections").action([](auto&& args) -> ParserType {
+		.production("sections", [](auto&& args) -> ParserType {
 			return Document{
 				Section{std::string{}, std::vector<Attribute>{}},
 				std::get<std::vector<Section>>(args[0])
 			};
 		})
-		.production().action([](auto&&) -> ParserType {
+		.production([](auto&&) -> ParserType {
 			return Document{
 				Section{std::string{}, std::vector<Attribute>{}},
 				std::vector<Section>{}
@@ -107,16 +107,16 @@ int main(int argc, char* argv[])
 		});
 
 	p.rule("sections")
-		.production("sections", "section").action([](auto&& args) -> ParserType {
+		.production("sections", "section", [](auto&& args) -> ParserType {
 			std::get<std::vector<Section>>(args[0]).push_back(std::get<Section>(args[1]));
 			return std::move(args[0]);
 		})
-		.production("section").action([](auto&& args) -> ParserType {
+		.production("section", [](auto&& args) -> ParserType {
 			return std::vector<Section>{std::get<Section>(args[0])};
 		});
 
 	p.rule("section")
-		.production("[", "id", "]", "attrs").action([](auto&& args) -> ParserType {
+		.production("[", "id", "]", "attrs", [](auto&& args) -> ParserType {
 			return Section{
 				std::get<std::string>(std::get<Value>(args[1])),
 				std::get<std::vector<Attribute>>(args[3])
@@ -124,15 +124,15 @@ int main(int argc, char* argv[])
 		});
 
 	p.rule("attrs")
-		.production("attrs", "attr").action([](auto&& args) -> ParserType {
+		.production("attrs", "attr", [](auto&& args) -> ParserType {
 			std::get<std::vector<Attribute>>(args[0]).push_back(std::get<Attribute>(args[1]));
 			return std::move(args[0]);
 		})
-		.production("attr").action([](auto&& args) -> ParserType {
+		.production("attr", [](auto&& args) -> ParserType {
 			return std::vector<Attribute>{std::get<Attribute>(args[0])};
 		});
 
-	p.rule("attr").production("id", "=", "value").action([](auto&& args) -> ParserType {
+	p.rule("attr").production("id", "=", "value", [](auto&& args) -> ParserType {
 		return Attribute{
 			std::get<std::string>(std::get<Value>(args[0])),
 			std::get<Value>(args[2])
@@ -140,16 +140,16 @@ int main(int argc, char* argv[])
 	});
 
 	p.rule("value")
-		.production("double").action([](auto&& args) -> ParserType {
+		.production("double", [](auto&& args) -> ParserType {
 			return std::move(args[0]);
 		})
-		.production("int").action([](auto&& args) -> ParserType {
+		.production("int", [](auto&& args) -> ParserType {
 			return std::move(args[0]);
 		})
-		.production("bool").action([](auto&& args) -> ParserType {
+		.production("bool", [](auto&& args) -> ParserType {
 			return std::move(args[0]);
 		})
-		.production("id").action([](auto&& args) -> ParserType {
+		.production("id", [](auto&& args) -> ParserType {
 			return std::move(args[0]);
 		});
 

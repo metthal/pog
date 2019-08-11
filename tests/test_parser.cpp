@@ -15,10 +15,10 @@ RepeatingAs) {
 
 	p.set_start_symbol("A");
 	p.rule("A")
-		.production("A", "a").action([](auto&& args) {
+		.production("A", "a", [](auto&& args) {
 			return 1 + args[0];
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return 1;
 		});
 	EXPECT_TRUE(p.prepare());
@@ -54,10 +54,10 @@ RepeatingAsWithIgnoringWhitespaces) {
 
 	p.set_start_symbol("A");
 	p.rule("A")
-		.production("A", "a").action([](auto&& args) {
+		.production("A", "a", [](auto&& args) {
 			return 1 + args[0];
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return 1;
 		});
 	EXPECT_TRUE(p.prepare());
@@ -87,10 +87,10 @@ SameNumberOfAsAndBs) {
 
 	p.set_start_symbol("S");
 	p.rule("S")
-		.production("a", "S", "b").action([](auto&& args) {
+		.production("a", "S", "b", [](auto&& args) {
 			return 1 + args[1];
 		})
-		.production("a", "b").action([](auto&&) {
+		.production("a", "b", [](auto&&) {
 			return 1;
 		});
 	EXPECT_TRUE(p.prepare());
@@ -169,19 +169,19 @@ Precedence) {
 
 	p.set_start_symbol("E");
 	p.rule("E")
-		.production("E", "+", "E").action([](auto&& args) {
+		.production("E", "+", "E", [](auto&& args) {
 			return args[0] + args[2];
 		})
-		.production("E", "-", "E").action([](auto&& args) {
+		.production("E", "-", "E", [](auto&& args) {
 			return args[0] - args[2];
 		})
-		.production("E", "*", "E").action([](auto&& args) {
+		.production("E", "*", "E", [](auto&& args) {
 			return args[0] * args[2];
 		})
-		.production("-", "E").action([](auto&& args) {
+		.production("-", "E", [](auto&& args) {
 			return -args[1];
 		}).precedence(2, Associativity::Right)
-		.production("int").action([](auto&& args) {
+		.production("int", [](auto&& args) {
 			return args[0];
 		});
 	EXPECT_TRUE(p.prepare());
@@ -258,20 +258,20 @@ Conflicts3) {
 
 	p.set_start_symbol("E");
 	p.rule("E")
-		.production("(", "E", ")").action([](auto&& args) {
+		.production("(", "E", ")", [](auto&& args) {
 			args[1].push_back("E -> ( E )");
 			return std::move(args[1]);
 		})
-		.production("PE").action([](auto&& args) {
+		.production("PE", [](auto&& args) {
 			args[0].push_back("E -> PE");
 			return std::move(args[0]);
 		});
 	p.rule("PE")
-		.production("(", "PE", ")").action([](auto&& args) {
+		.production("(", "PE", ")", [](auto&& args) {
 			args[1].push_back("PE -> ( PE )");
 			return std::move(args[1]);
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return std::vector<std::string>{"PE -> a"};
 		});
 
@@ -302,20 +302,20 @@ ResolveConflictWithPrecedence) {
 
 	p.set_start_symbol("E");
 	p.rule("E")
-		.production("(", "E", ")").action([](auto&& args) {
+		.production("(", "E", ")", [](auto&& args) {
 			args[1].push_back("E -> ( E )");
 			return std::move(args[1]);
 		})
-		.production("PE").action([](auto&& args) {
+		.production("PE", [](auto&& args) {
 			args[0].push_back("E -> PE");
 			return std::move(args[0]);
 		}).precedence(1, Associativity::Left);
 	p.rule("PE")
-		.production("(", "PE", ")").action([](auto&& args) {
+		.production("(", "PE", ")", [](auto&& args) {
 			args[1].push_back("PE -> ( PE )");
 			return std::move(args[1]);
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return std::vector<std::string>{"PE -> a"};
 		});
 	EXPECT_TRUE(p.prepare());
@@ -342,11 +342,11 @@ MoveOnlyType) {
 
 	p.set_start_symbol("A");
 	p.rule("A")
-		.production("A", "a").action([](auto&& args) {
+		.production("A", "a", [](auto&& args) {
 			*(args[0].get()) += 1;
 			return std::move(args[0]);
 		})
-		.production("a").action([](auto&& args) {
+		.production("a", [](auto&& args) {
 			return std::move(args[0]);
 		});
 	EXPECT_TRUE(p.prepare());
@@ -386,10 +386,10 @@ EndTokenAction) {
 
 	p.set_start_symbol("A");
 	p.rule("A")
-		.production("A", "a").action([](auto&& args) {
+		.production("A", "a", [](auto&& args) {
 			return 1 + args[0];
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return 1;
 		});
 	EXPECT_TRUE(p.prepare());
@@ -413,14 +413,14 @@ TokenActionsCalledOnce) {
 
 	p.set_start_symbol("A");
 	p.rule("A")
-		.production("B").action([](auto&& args) {
+		.production("B", [](auto&& args) {
 			return args[0];
 		});
 	p.rule("B")
-		.production("A", "a").action([](auto&& args) {
+		.production("A", "a", [](auto&& args) {
 			return 1 + args[0];
 		})
-		.production("a").action([](auto&&) {
+		.production("a", [](auto&&) {
 			return 1;
 		});
 	EXPECT_TRUE(p.prepare());
@@ -480,26 +480,26 @@ MultistateTokenizer) {
 
 	p.set_start_symbol("root");
 	p.rule("root")
-		.production("strings").action([](auto&& args) -> Value {
+		.production("strings", [](auto&& args) -> Value {
 			return std::move(args[0]);
 		})
-		.production().action([](auto&&) -> Value {
+		.production([](auto&&) -> Value {
 			return std::vector<std::pair<std::string, std::string>>{};
 		});
 	p.rule("strings")
-		.production("strings", "string").action([](auto&& args) -> Value {
+		.production("strings", "string", [](auto&& args) -> Value {
 			std::get<std::vector<std::pair<std::string, std::string>>>(args[0]).push_back(
 				std::get<std::pair<std::string, std::string>>(args[1])
 			);
 			return std::move(args[0]);
 		})
-		.production("string").action([](auto&& args) -> Value {
+		.production("string", [](auto&& args) -> Value {
 			return std::vector<std::pair<std::string, std::string>>{
 				std::get<std::pair<std::string, std::string>>(args[0])
 			};
 		});
 	p.rule("string")
-		.production("id", "=", "string_literal").action([](auto&& args) -> Value {
+		.production("id", "=", "string_literal", [](auto&& args) -> Value {
 			return std::make_pair(
 				std::get<std::string>(args[0]),
 				std::get<std::string>(args[2])
@@ -517,4 +517,110 @@ MultistateTokenizer) {
 	EXPECT_EQ(strings.size(), 2u);
 	EXPECT_THAT(strings[0], Pair(Eq("abc"), Eq("xyz")));
 	EXPECT_THAT(strings[1], Pair(Eq("x"), Eq("ab\n\t\r cd")));
+}
+
+TEST_F(TestParser,
+MidruleActionsToCheckRedefinition) {
+	using Value = std::variant<
+		int,
+		std::string
+	>;
+
+	Parser<Value> p;
+
+	p.token("\\s+");
+	p.token("=").symbol("=");
+	p.token(";").symbol(";");
+	p.token("\\{").symbol("{");
+	p.token("\\}").symbol("}");
+	p.token("function").symbol("function");
+	p.token("var").symbol("var");
+	p.token("[_a-zA-Z][_a-zA-Z0-9]*").symbol("id").action([](std::string_view str) -> Value {
+		return std::string{str};
+	});
+	p.token("[0-9]+").symbol("num").action([](std::string_view str) -> Value {
+		return std::stoi(std::string{str});
+	});
+
+	std::unordered_set<std::string> defs, redefs;
+
+	p.set_start_symbol("prog");
+	p.rule("prog")
+		.production("funcs")
+		.production();
+	p.rule("funcs")
+		.production("funcs", "func")
+		.production("func");
+	p.rule("func")
+		.production(
+			"function", "id", [&](auto&& args) -> Value {
+				auto func_name = std::get<std::string>(args[1]);
+				auto [itr, inserted] = defs.insert(func_name);
+				if (!inserted)
+					redefs.insert(func_name);
+				return {};
+			},
+			"{", "func_body", "}"
+		);
+	p.rule("func_body")
+		.production("stmts")
+		.production();
+	p.rule("stmts")
+		.production("stmts", "stmt")
+		.production("stmt");
+	p.rule("stmt")
+		.production(
+			"var", "id", [&](auto&& args) -> Value {
+				auto var_name = std::get<std::string>(args[1]);
+				auto [itr, inserted] = defs.insert(var_name);
+				if (!inserted)
+					redefs.insert(var_name);
+				return {};
+			},
+			"=", "num", ";"
+		);
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1(
+R"(function x {
+	var y = 5;
+	var z = 10;
+})"
+	);
+	auto result1 = p.parse(input1);
+	EXPECT_TRUE(result1);
+	EXPECT_EQ(defs, (std::unordered_set<std::string>{"x", "y", "z"}));
+	EXPECT_EQ(redefs, (std::unordered_set<std::string>{}));
+
+	defs.clear();
+	redefs.clear();
+
+	std::stringstream input2(
+R"(function x {
+	var y = 5;
+	var x = 10;
+})"
+	);
+	auto result2 = p.parse(input2);
+	EXPECT_TRUE(result2);
+	EXPECT_EQ(defs, (std::unordered_set<std::string>{"x", "y"}));
+	EXPECT_EQ(redefs, (std::unordered_set<std::string>{"x"}));
+
+	defs.clear();
+	redefs.clear();
+
+	std::stringstream input3(
+R"(function x {
+	var y = 5;
+	var z = 10;
+}
+
+function z {
+	var a = 1;
+})"
+	);
+	auto result3 = p.parse(input3);
+	EXPECT_TRUE(result3);
+	EXPECT_EQ(defs, (std::unordered_set<std::string>{"x", "y", "z", "a"}));
+	EXPECT_EQ(redefs, (std::unordered_set<std::string>{"z"}));
 }

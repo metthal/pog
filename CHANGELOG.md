@@ -5,6 +5,7 @@
 * Tokenizer now supports states
 * Generation of HTML report for parsers
 * Added support for build on Windows (using MSVC) and macOS
+* Added support for mid-rule actions
 
 # v0.1.0 (2019-07-27)
 

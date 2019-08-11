@@ -9,6 +9,7 @@ set(TEST_FILES
 	test_parsing_table.cpp
 	test_precedence.cpp
 	test_rule.cpp
+	test_rule_builder.cpp
 	test_state.cpp
 	test_symbol.cpp
 	test_token.cpp
