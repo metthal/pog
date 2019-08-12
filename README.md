@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/metthal/pog.svg?branch=master)](https://travis-ci.org/metthal/pog)
 [![Build Status](https://ci.appveyor.com/api/projects/status/84heo43wj4mqoo5y/branch/master?svg=true)](https://ci.appveyor.com/project/metthal/pog/branch/master)
-[![Documentation Status](https://readthedocs.org/projects/pog/badge/?version=stable)](https://pog.readthedocs.io/en/stable/?badge=stable)
+[![Documentation Status](https://readthedocs.org/projects/pog/badge/?version=latest)](https://pog.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/metthal/pog/branch/master/graph/badge.svg)](https://codecov.io/gh/metthal/pog)
 
 Pog is C++17 library for generating LALR(1) parsers. It splits definitions of parser into:
