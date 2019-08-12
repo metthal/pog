@@ -66,6 +66,11 @@ public:
 			info.re_set->Compile();
 	}
 
+	const std::vector<std::unique_ptr<TokenType>>& get_tokens() const
+	{
+		return _tokens;
+	}
+
 	TokenType* get_end_token() const
 	{
 		return _tokens[0].get();
