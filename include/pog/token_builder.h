@@ -27,7 +27,7 @@ public:
 		if (!_end_token)
 		{
 			auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
-			token = _tokenizer->add_token(_fullword ? fmt::format("\\b{}(\\b|$)", _pattern) : _pattern, symbol, _in_states);
+			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, _in_states);
 			if (symbol && _precedence)
 			{
 				const auto& prec = _precedence.value();

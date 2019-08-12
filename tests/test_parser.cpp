@@ -624,3 +624,48 @@ function z {
 	EXPECT_EQ(defs, (std::unordered_set<std::string>{"x", "y", "z", "a"}));
 	EXPECT_EQ(redefs, (std::unordered_set<std::string>{"z"}));
 }
+
+TEST_F(TestParser,
+InputStreamStackManipulation) {
+	static std::vector<std::string> input_streams = {
+		"10",
+		"include 0",
+		"30",
+		"40"
+	};
+
+	std::vector<std::unique_ptr<std::stringstream>> inputs;
+
+	Parser<int> p;
+
+	p.token("\\s+");
+	p.token("\\+").symbol("+").precedence(1, Associativity::Left);
+	p.token("\\*").symbol("*").precedence(2, Associativity::Left);
+	p.token("include [0-9]+").action([&](std::string_view str) {
+		auto stream_idx = std::stoi(std::string{str.begin() + 8, str.end()});
+		inputs.emplace_back(std::make_unique<std::stringstream>(input_streams[stream_idx]));
+		p.push_input_stream(*inputs.back().get());
+		return 0;
+	});
+	p.token("[0-9]+").symbol("number").action([](std::string_view str) {
+		return std::stoi(std::string{str});
+	});
+	p.end_token().action([&](std::string_view) {
+		p.pop_input_stream();
+		return 0;
+	});
+
+	p.set_start_symbol("E");
+	p.rule("E")
+		.production("E", "+", "E", [](auto&& args) { return args[0] + args[2]; })
+		.production("E", "*", "E", [](auto&& args) { return args[0] * args[2]; })
+		.production("number", [](auto&& args) { return args[0]; });
+
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input("include 1 + include 2 * include 3 + 5");
+	auto result = p.parse(input);
+
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 1215);
+}

@@ -99,6 +99,16 @@ public:
 		_grammar.set_start_symbol(_grammar.add_symbol(SymbolKind::Nonterminal, name));
 	}
 
+	void push_input_stream(std::istream& input)
+	{
+		_tokenizer.push_input_stream(input);
+	}
+
+	void pop_input_stream()
+	{
+		_tokenizer.pop_input_stream();
+	}
+
 	std::optional<ValueT> parse(std::istream& input)
 	{
 		std::optional<TokenMatchType> token;
