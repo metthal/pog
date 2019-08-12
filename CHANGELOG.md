@@ -1,4 +1,4 @@
-# dev
+# v0.2.0 (2019-08-12)
 
 * Added support for tokenizer action when end of input stream is reached
 * Token actions are now always called exactly once for each individual token
