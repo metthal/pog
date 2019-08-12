@@ -642,7 +642,7 @@ InputStreamStackManipulation) {
 	p.token("\\+").symbol("+").precedence(1, Associativity::Left);
 	p.token("\\*").symbol("*").precedence(2, Associativity::Left);
 	p.token("include [0-9]+").action([&](std::string_view str) {
-		auto stream_idx = std::stoi(std::string{str.data() + 8, str.end()});
+		auto stream_idx = std::stoi(std::string{str.begin() + 8, str.end()});
 		inputs.emplace_back(std::make_unique<std::stringstream>(input_streams[stream_idx]));
 		p.push_input_stream(*inputs.back().get());
 		return 0;
