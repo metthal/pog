@@ -32,7 +32,7 @@ Things to do before 1.0.0
 - [x] Code Coverage
 - [x] CI pipeline (Travis CI, AppVeyor)
 - [ ] Packaging (ZIP, RPM, DEB, ... + getting package into repositories)
-- [ ] Sphinx Docs (+ Read The Docs integration)
+- [x] Sphinx Docs (+ Read The Docs integration)
 
 Things to do after 1.0.0
 
