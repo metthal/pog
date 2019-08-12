@@ -57,7 +57,7 @@ public:
 	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _state_info(), _input_stack(), _current_state(nullptr)
 	{
 		_current_state = get_or_make_state_info(std::string{DefaultState});
-		add_token("$", _grammar->get_end_of_input_symbol(), std::vector<std::string>{std::string{DefaultState}});
+		add_token("$", nullptr, std::vector<std::string>{std::string{DefaultState}});
 	}
 
 	void prepare()
@@ -109,8 +109,9 @@ public:
 		bool repeat = true;
 		while (repeat)
 		{
+			// We've emptied the stack so that means return end symbol to parser
 			if (_input_stack.empty())
-				return std::nullopt;
+				return _grammar->get_end_of_input_symbol();
 
 			auto& current_input = _input_stack.back();
 			if (!current_input.at_end)
@@ -148,20 +149,20 @@ public:
 				if (best_match->has_transition_to_state())
 					enter_state(best_match->get_transition_to_state());
 
+				std::string_view token_str{current_input.stream.data(), static_cast<std::size_t>(longest_match)};
+				current_input.stream.remove_prefix(longest_match);
+
 				ValueT value{};
 				if (best_match->has_action())
-					value = best_match->perform_action(std::string_view{current_input.stream.data(), static_cast<std::size_t>(longest_match)});
+					value = best_match->perform_action(token_str);
 
-				current_input.stream.remove_prefix(longest_match);
 				if (!best_match->has_symbol())
 					continue;
 
 				return TokenMatchType{best_match->get_symbol(), std::move(value), static_cast<std::size_t>(longest_match)};
 			}
 
-			// Fallback just in case that we've reached end of input and it didn't get propagated to parser
-			// If user doesn't have symbol associated with token then we don't return in above continue, but rather loop
-			// If we've reached end in the meantime then we fall through here
+			// There is still something on stack but we've reached the end and noone popped it so return end symbol to parser
 			return _grammar->get_end_of_input_symbol();
 		}
 
