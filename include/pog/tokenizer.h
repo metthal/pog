@@ -29,7 +29,7 @@ struct TokenMatch
 
 struct InputStream
 {
-	std::string content;
+	std::unique_ptr<std::string> content;
 	re2::StringPiece stream;
 	bool at_end;
 };
@@ -66,6 +66,11 @@ public:
 			info.re_set->Compile();
 	}
 
+	const std::vector<std::unique_ptr<TokenType>>& get_tokens() const
+	{
+		return _tokens;
+	}
+
 	TokenType* get_end_token() const
 	{
 		return _tokens[0].get();
@@ -95,8 +100,8 @@ public:
 			input.append(std::string_view(block.data(), stream.gcount()));
 		}
 
-		_input_stack.emplace_back(InputStream{std::move(input), re2::StringPiece{}, false});
-		_input_stack.back().stream = re2::StringPiece{_input_stack.back().content};
+		_input_stack.emplace_back(InputStream{std::make_unique<std::string>(std::move(input)), re2::StringPiece{}, false});
+		_input_stack.back().stream = re2::StringPiece{_input_stack.back().content->c_str()};
 	}
 
 	void pop_input_stream()

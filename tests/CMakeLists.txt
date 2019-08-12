@@ -13,12 +13,14 @@ set(TEST_FILES
 	test_state.cpp
 	test_symbol.cpp
 	test_token.cpp
+	test_tokenizer.cpp
+	test_token_builder.cpp
 	test_utils.cpp
 )
 
 add_executable(pog_tests ${TEST_FILES})
 if (MSVC)
-# This flag is needed for MSVC because test_parser.cpp exceeds limit of number of section in Debug x64 build
+	# This flag is needed for MSVC because test_parser.cpp exceeds limit of number of section in Debug x64 build
 	set_source_files_properties(test_parser.cpp PROPERTIES COMPILE_FLAGS /bigobj)
 endif()
 target_link_libraries(pog_tests pog googletest)
