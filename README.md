@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/metthal/pog.svg?branch=master)](https://travis-ci.org/metthal/pog)
 [![Build Status](https://ci.appveyor.com/api/projects/status/84heo43wj4mqoo5y/branch/master?svg=true)](https://ci.appveyor.com/project/metthal/pog/branch/master)
+[![Documentation Status](https://readthedocs.org/projects/pog/badge/?version=stable)](https://pog.readthedocs.io/en/stable/?badge=stable)
 [![codecov](https://codecov.io/gh/metthal/pog/branch/master/graph/badge.svg)](https://codecov.io/gh/metthal/pog)
-
 
 Pog is C++17 library for generating LALR(1) parsers. It splits definitions of parser into:
 
@@ -12,35 +12,7 @@ Pog is C++17 library for generating LALR(1) parsers. It splits definitions of pa
 
 If you are familiar with tools like yacc + lex or bison + flex then this should be already known concept for you. This library is header-only itself but requires RE2 library which does not come with header-only version. The plan is to be completely header-only in the future.
 
-## Requirements
-
-* C++ compiler with C++17 support
-* [re2](https://github.com/google/re2)
-* [fmt](https://github.com/fmtlib/fmt)
-
-## How To Build
-
-You can run CMake to build examples to see how Pog works.
-
-```
-cmake -DCMAKE_BUILD_TYPE=Release -DPOG_EXAMPLES=ON ..
-cmake --build . -- -j
-```
-
-If you want to install Pog and use it in another project.
-
-```
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build . --target install -- -j
-```
-
-It should automatically install CMake and `pkg-config` files required for using `pog` in other projects. For CMake, put this in your `CMakeLists.txt`
-
-```
-find_package(pog REQUIRED)
-...
-target_link_libraries(<your_project> pog::pog)
-```
+See [documentation](https://pog.readthedocs.io/en/stable/) for more information about the installation and usage of the library.
 
 ## Why make another parser generator?
 
