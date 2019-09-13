@@ -13,6 +13,7 @@ option(POG_DOWNLOAD_FMT "Download fmt during build process" OFF)
 option(POG_EXAMPLES     "Build examples"                    OFF)
 option(POG_TESTS        "Build tests"                       OFF)
 option(POG_COVERAGE     "Enable coverage"                   OFF)
+option(POG_PIC          "Enable position independent code"  OFF)
 
 ## Includes.
 include(CMakePackageConfigHelpers)
