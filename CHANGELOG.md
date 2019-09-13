@@ -1,3 +1,7 @@
+# v0.2.1 (2019-09-13)
+
+* Added option `POG_PIC` to build position-independent code
+
 # v0.2.0 (2019-08-12)
 
 * Added support for tokenizer action when end of input stream is reached
