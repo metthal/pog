@@ -124,12 +124,12 @@ that value from all mid-rule actions is lost and cannot be recovered. The left-h
 Tokenizer states
 ================
 
-Tokenizer has set of regular expressions and matches them all against the start of the input. However, it might be sometimes unncessary to match every single regular expression or even
+Tokenizer has set of regular expressions and matches them all against the start of the input. However, it might be sometimes unnecessary to match every single regular expression or even
 impossible to design such that it doesn't collide with other regular expressions and always returns you the right token you want. For this purpose, you can define tokenizer states
-and transition between those states as you want. Tokenizer can be in a single state at the time and can transition to any other state. Regular expression of token can be in active
+and transition between those states as you want. Tokenizer can be in a single state at the time and can transition to any other state. Regular expression of token can be active
 in multiple states at once. States are represented using string literals. Default state is called ``@default``. This is for example useful for tokenizing string literals with escape sequences.
 Upon reading ``"`` from input, you can enter special state which reads characters one by one and whenever runs into escape sequences like ``\n``, ``\t`` or any other, then it appends
-corrent escaped character to the string. Upon reaching ending ``"``, we enter default state. While we are tokenizing this string literal, there is no reason to match all other regular expressions for
+correct escaped character to the string. Upon reaching ending ``"``, we enter default state. While we are tokenizing this string literal, there is no reason to match all other regular expressions for
 other tokens because we know we are in a specific context in which characters have other special meaning.
 
 .. code-block:: cpp
