@@ -203,10 +203,7 @@ In some corner cases which are not covered by syntax errors but might represent 
 
   auto report = parser.prepare();
   if (!report)
-  {
-    for (const auto& issue : report)
-      std::cerr << issue.to_string() << std::endl;
-  }
+    fmt::print("{}\n", report.to_string());
 
   std::stringstream input(/* your input */);
   try
