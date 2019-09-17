@@ -31,7 +31,7 @@ We do now want to force you to use any specific data type but we recommend using
 Tokenization
 ============
 
-You start defining your parser with tokens. You need to provide regular expression that describes how the recognize the token on the input. The syntax for regular expression is Perl-like.
+You start defining your parser with tokens. You need to provide regular expression that describes how to recognize the token on the input. The syntax for regular expression is Perl-like.
 Here is an example on how to define tokens for recognizing boolean, integer literals and string literals (without escape sequences).
 
 .. code-block:: cpp
@@ -137,7 +137,7 @@ Once your input is tokenized, you may start with specfying grammar rules. Let's 
     .production("int")
     .production("string");
 
-Se ``rule()`` method expects symbol on the left-hand side of the rule and can have multiple productions with multiple symbols on the right-hand side (even none). If we wanted to write rules for
+The ``rule()`` method expects symbol on the left-hand side of the rule and can have multiple productions with multiple symbols on the right-hand side (even none). If we wanted to write rules for
 languages which would represents 0 or more variable initializations, we could write that as (`ε` is usual way to denote empty string in formal languages):
 
 .. code-block:: cpp
@@ -203,10 +203,7 @@ In some corner cases which are not covered by syntax errors but might represent 
 
   auto report = parser.prepare();
   if (!report)
-  {
-    for (const auto& issue : report)
-      std::cerr << issue.to_string() << std::endl;
-  }
+    fmt::print("{}\n", report.to_string());
 
   std::stringstream input(/* your input */);
   try
