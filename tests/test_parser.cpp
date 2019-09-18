@@ -669,3 +669,44 @@ InputStreamStackManipulation) {
 	EXPECT_TRUE(result);
 	EXPECT_EQ(result.value(), 1215);
 }
+
+TEST_F(TestParser,
+RuleActionsAccessingDataBeforeMidruleAction) {
+	Parser<int> p;
+
+	p.token("\\s+");
+	p.token("a").symbol("a").action([](std::string_view) {
+		return 1;
+	});
+	p.token("function").symbol("func").action([](std::string_view) {
+		return 10;
+	});
+	p.token("[a-zA-Z_]+").symbol("id").action([](std::string_view) {
+		return 100;
+	});
+
+	std::vector<int> all_values;
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("func", "id", [](auto&& args) {
+				return args[0] + args[1];
+			},
+			"A", [&](auto&& args) {
+				for (const auto& arg : args)
+					all_values.push_back(arg);
+				return args[2] + args[3];
+			});
+	p.rule("A")
+		.production("A", "a", [](auto&& args) { return args[0] + args[1]; })
+		.production("a", [](auto&& args) { return args[0]; });
+
+
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input("function abc a a a a a");
+	auto result = p.parse(input);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 115);
+	EXPECT_EQ(all_values, (std::vector<int>{10, 100, 110, 5}));
+}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,11 +21,11 @@ public:
 	using CallbackType = std::function<ValueT(std::vector<ValueT>&&)>;
 
 	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs)
-		: _index(index), _lhs(lhs), _rhs(rhs), _action() {}
+		: _index(index), _lhs(lhs), _rhs(rhs), _action(), _midrule_size(std::nullopt) {}
 
 	template <typename CallbackT>
 	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs, CallbackT&& action)
-		: _index(index), _lhs(lhs), _rhs(rhs), _action(std::forward<CallbackT>(action)) {}
+		: _index(index), _lhs(lhs), _rhs(rhs), _action(std::forward<CallbackT>(action)), _midrule_size(std::nullopt) {}
 
 	std::uint32_t get_index() const { return _index; }
 	const SymbolType* get_lhs() const { return _lhs; }
@@ -33,6 +34,11 @@ public:
 	bool has_precedence() const { return static_cast<bool>(_precedence); }
 	const Precedence& get_precedence() const { return _precedence.value(); }
 	void set_precedence(std::uint32_t level, Associativity assoc) { _precedence = Precedence{level, assoc}; }
+
+	std::size_t get_number_of_required_arguments_for_action() const
+	{
+		return is_midrule() ? get_midrule_size() : get_rhs().size();
+	}
 
 	const SymbolType* get_rightmost_terminal() const
 	{
@@ -58,6 +64,10 @@ public:
 
 	bool has_action() const { return static_cast<bool>(_action); }
 
+	void set_midrule(std::size_t size) { _midrule_size = size; }
+	bool is_midrule() const { return static_cast<bool>(_midrule_size); }
+	std::size_t get_midrule_size() const { return _midrule_size.value(); }
+
 	template <typename... Args>
 	ValueT perform_action(Args&&... args) const { return _action(std::forward<Args>(args)...); }
 
@@ -70,6 +80,7 @@ private:
 	std::vector<const SymbolType*> _rhs;
 	CallbackType _action;
 	std::optional<Precedence> _precedence;
+	std::optional<std::size_t> _midrule_size;
 };
 
 } // namespace pog
