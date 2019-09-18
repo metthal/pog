@@ -1,3 +1,7 @@
+# dev
+
+* Midrule actions and all preceding symbols are now accessible from later actions in that rule
+
 # v0.2.1 (2019-09-13)
 
 * Added option `POG_PIC` to build position-independent code
