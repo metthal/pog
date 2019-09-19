@@ -37,56 +37,49 @@ public:
 		std::size_t rhs_counter = 0;
 		for (auto&& rhs : _rhss)
 		{
-			RuleType* rule = nullptr;
+			assert(!rhs.symbols_and_action.empty() && "No symbols and action associated to right-hand side of the rule. This shouldn't happen");
 
-			// There are multple actions (mid-rule actions) so we need to create new symbol and split the rule
-			// If you have rule A -> B C D and you want to perform action after B, then we'll create rules
-			// A -> A0 A1
-			// A0 -> B
-			// A1 -> C D
-			if (rhs.symbols_and_action.size() > 1)
+			std::vector<const SymbolType*> rhs_symbols;
+			for (std::size_t i = 0; i < rhs.symbols_and_action.size(); ++i)
 			{
-				std::vector<const SymbolType*> main_rhs_symbols(rhs.symbols_and_action.size());
-				for (std::size_t i = 0; i < rhs.symbols_and_action.size(); ++i)
+				auto&& symbols_and_action = rhs.symbols_and_action[i];
+
+				std::transform(symbols_and_action.symbols.begin(), symbols_and_action.symbols.end(), std::back_inserter(rhs_symbols), [this](const auto& sym_name) {
+					return _grammar->add_symbol(SymbolKind::Nonterminal, sym_name);
+				});
+
+				// There are multple actions (mid-rule actions) so we need to create new symbol and epsilon rule
+				// for each midrule action. Midrule symbols will be inserted into the original rule.
+				//
+				// If you have rule A -> B C D and you want to perform action after B, then we'll create rules
+				// A -> B X C D
+				// X -> <eps>
+				// where X -> <eps> will have assigned the midrule action.
+				if (i < rhs.symbols_and_action.size() - 1)
 				{
-					// Create those main level symbol A_i which will be used as left-hand side of the newly created subrule
-					main_rhs_symbols[i] = _grammar->add_symbol(
+					// Create unique nonterminal for midrule action
+					auto midsymbol = _grammar->add_symbol(
 						SymbolKind::Nonterminal,
 						fmt::format("_{}#{}.{}", _lhs, rhs_counter, i)
 					);
+
+					// Create rule to which midrule action can be assigned and set midrule size.
+					// Midrule size is number of symbols preceding the midrule symbol. It represents how many
+					// items from stack we need to borrow for action arguments.
+					auto rule = _grammar->add_rule(midsymbol, std::vector<const SymbolType*>{}, std::move(symbols_and_action.action));
+					rule->set_midrule(rhs_symbols.size());
+					rhs_symbols.push_back(midsymbol);
 				}
-
-				// Create main level rule A -> A_1 A_2 .. A_n and pass through result from A_n
-				rule = _grammar->add_rule(lhs_symbol, main_rhs_symbols, [](auto&& args) {
-					return !args.empty() ? std::move(args.back()) : ValueT{};
-				});
-
-				// Create subrule with A_i as left-hand side
-				std::size_t counter = 0;
-				for (auto&& symbols_and_action : rhs.symbols_and_action)
+				// This is the last action so do not mark it as midrule
+				else
 				{
-					std::vector<const SymbolType*> rhs_symbols(symbols_and_action.symbols.size());
-					std::transform(symbols_and_action.symbols.begin(), symbols_and_action.symbols.end(), rhs_symbols.begin(), [this](const auto& sym_name) {
-						return _grammar->add_symbol(SymbolKind::Nonterminal, sym_name);
-					});
-					_grammar->add_rule(main_rhs_symbols[counter++], rhs_symbols, std::move(symbols_and_action.action));
+					auto rule = _grammar->add_rule(lhs_symbol, rhs_symbols, std::move(symbols_and_action.action));
+					if (rule && rhs.precedence)
+					{
+						const auto& prec = rhs.precedence.value();
+						rule->set_precedence(prec.level, prec.assoc);
+					}
 				}
-			}
-			else if (rhs.symbols_and_action.size() == 1)
-			{
-				std::vector<const SymbolType*> rhs_symbols(rhs.symbols_and_action[0].symbols.size());
-				std::transform(rhs.symbols_and_action[0].symbols.begin(), rhs.symbols_and_action[0].symbols.end(), rhs_symbols.begin(), [this](const auto& sym_name) {
-					return _grammar->add_symbol(SymbolKind::Nonterminal, sym_name);
-				});
-				rule = _grammar->add_rule(lhs_symbol, rhs_symbols, std::move(rhs.symbols_and_action[0].action));
-			}
-			else
-				assert(false && "No symbols and action associated to right-hand side of the rule. This shouldn't happen");
-
-			if (rule && rhs.precedence)
-			{
-				const auto& prec = rhs.precedence.value();
-				rule->set_precedence(prec.level, prec.assoc);
 			}
 
 			rhs_counter++;

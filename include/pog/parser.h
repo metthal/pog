@@ -149,8 +149,8 @@ public:
 				// We'll pop them out and put them in reverse order so user have them available
 				// left-to-right and not right-to-left.
 				std::vector<ValueT> action_arg;
-				action_arg.reserve(reduce.rule->get_rhs().size());
-				assert(stack.size() >= reduce.rule->get_rhs().size() && "Stack is too small");
+				action_arg.reserve(reduce.rule->get_number_of_required_arguments_for_action());
+				assert(stack.size() >= action_arg.capacity() && "Stack is too small");
 
 				for (std::size_t i = 0; i < action_arg.capacity(); ++i)
 				{
@@ -158,21 +158,40 @@ public:
 					// We need to do this in order to perform move together with value_or()
 					// See: https://en.cppreference.com/w/cpp/utility/optional/value_or
 					// std::move(*this) is performed only when value_or() is called from r-value
-					action_arg.insert(action_arg.begin(), std::move(stack.back().second).value_or(ValueT{}));
-					stack.pop_back();
+					//
+					// Also do not pop from stack here because midrule actions can still return us arguments back
+					action_arg.insert(action_arg.begin(), std::move(stack[stack.size() - i - 1].second).value_or(ValueT{}));
 				}
 
 				// What left on the stack now determines what state we get into now
-				auto maybe_next_state = _parsing_table.get_transition(_automaton.get_state(stack.back().first), reduce.rule->get_lhs());
+				// We use size of RHS to determine stack top because midrule actions might have only borrowed something from stack so the
+				// real stack top is not the actual top. Midrule actions have 0 RHS size even though they borrow items. Other rules
+				// have same size of RHS and what they take out of stack.
+				auto maybe_next_state = _parsing_table.get_transition(_automaton.get_state(stack[stack.size() - reduce.rule->get_rhs().size() - 1].first), reduce.rule->get_lhs());
 				if (!maybe_next_state)
 				{
 					assert(false && "Reduction happened but corresponding GOTO table record is empty");
 					return std::nullopt;
 				}
 
+				auto action_result = reduce.rule->has_action() ? reduce.rule->perform_action(std::move(action_arg)) : ValueT{};
+
+				// Midrule actions only borrowed arguments and it is returning them back
+				if (reduce.rule->is_midrule())
+				{
+					for (std::size_t i = 0; i < action_arg.size(); ++i)
+						stack[stack.size() - i - 1].second = std::move(action_arg[action_arg.size() - i - 1]);
+				}
+				// Non-midrule actions actually consumed those arguments so pop them out
+				else
+				{
+					for (std::size_t i = 0; i < action_arg.size(); ++i)
+						stack.pop_back();
+				}
+
 				stack.emplace_back(
 					maybe_next_state.value()->get_index(),
-					reduce.rule->has_action() ? reduce.rule->perform_action(std::move(action_arg)) : ValueT{}
+					std::move(action_result)
 				);
 			}
 			else if (std::holds_alternative<ShiftActionType>(action))

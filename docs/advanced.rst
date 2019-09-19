@@ -76,7 +76,7 @@ Most of the times, it is enough to have a rule action being preformed after the 
 there is a need for so called `mid-rule action`. That is action performed after only certain part of the rule has been parsed out. This comes as a problematic since the parser cannot know
 whether it is in the middle of parsing certain rule. It will know which rule to reduce after it has parsed its whole right-hand side (and also depending on the next input symbol).
 
-`pog` tries to solve this by internally splitting your rule into more smaller rules to achieve this. Let's take for example rule ``func -> function id ( args ) { body }``. Usually you would
+`pog` tries to solve this by internally transforming your rules such that this is possible. Let's take for example rule ``func -> function id ( args ) { body }``. Usually you would
 write it as:
 
 .. code-block:: cpp
@@ -103,23 +103,21 @@ Internally it would look like this:
 .. code-block:: cpp
 
   parser.rule("func")
-    .production("_func#0.0", "_func#0.1",
-        [](auto&& args) { /* passthrough last value */ }
+    .production("function", "id", "_func#0.0", "(", "args", ")", "{", "body", "}",
+        [](auto&& args) { /* action 2 */ }
     );
   parser.rule("_func#0.0")
-    .production(
-        "function", "id",
-            [](auto&& args) { /* action 1 */ }
-    );
-  parser.rule("_func#0.1")
-    .production(
-        "(", "args", ")", "{", "body", "}",
-            [](auto&& args) { /* action 2 */ }
-    );
+    .production([](auto&& args) { /* action 1 */ });
 
-This comes with some disadvantages. Since internally, rule is being split, it can introduce `shift-reduce` conflicts which weren't there before. You also loose access to the values of symbols
-that were covered by previous mid-rule actions, so for example `action 2` in example above wouldn't have access to ``function`` nor ``id`` since they are covered by `action 1`. Also keep in mind
-that value from all mid-rule actions is lost and cannot be recovered. The left-hand side symbol will always be assigned value from the end-rule action.
+As you can see, epsilon rule has been inserted where mid-rule action is supposed to be. This comes with some disadvantages. Since internally, rule is being modified, it can introduce `shift-reduce`
+conflicts which weren't there before. Values returned from mid-rule actions are stored together with all values associated to left-hand side symbols. That means you need to take into account
+also mid-rule actions when counting indices in ``args`` array. For example in order to access arguments (symbol ``args``) from `action 2` you need to access index 4 instead of 3.
+The left-hand side symbol will always be assigned value from the end-rule action.
+
+.. attention::
+
+  You should not move values out of arguments array in mid-rule actions if you want to rely on them in later actions. The values for mid-rule actions are only `borrowed` and returned back
+  to the stack when mid-rule action is finished. By moving them, you essentially get them to unspecified state (based on the implementation of your type).
 
 Tokenizer states
 ================
