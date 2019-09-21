@@ -62,6 +62,20 @@ public:
 
 	void prepare()
 	{
+		std::string error;
+
+		for (const auto& token : _tokens)
+		{
+			for (const auto& state : token->get_active_in_states())
+			{
+				error.clear();
+				auto* state_info = get_or_make_state_info(state);
+				state_info->re_set->Add(token->get_pattern(), &error);
+				state_info->tokens.push_back(token.get());
+				assert(error.empty() && "Error when compiling token regexp");
+			}
+		}
+
 		for (auto&& [name, info] : _state_info)
 			info.re_set->Compile();
 	}
@@ -78,15 +92,7 @@ public:
 
 	TokenType* add_token(const std::string& pattern, const SymbolType* symbol, const std::vector<std::string>& states)
 	{
-		_tokens.push_back(std::make_unique<TokenType>(static_cast<std::uint32_t>(_tokens.size()), pattern, symbol));
-		for (const auto& state : states)
-		{
-			std::string error;
-			auto* state_info = get_or_make_state_info(state);
-			state_info->re_set->Add(_tokens.back()->get_pattern(), &error);
-			state_info->tokens.push_back(_tokens.back().get());
-			assert(error.empty() && "Error when compiling token regexp");
-		}
+		_tokens.push_back(std::make_unique<TokenType>(static_cast<std::uint32_t>(_tokens.size()), pattern, states, symbol));
 		return _tokens.back().get();
 	}
 
@@ -174,6 +180,12 @@ public:
 		return std::nullopt;
 	}
 
+	void enter_state(const std::string& state)
+	{
+		_current_state = get_state_info(state);
+		assert(_current_state && "Transition to unknown state in tokenizer");
+	}
+
 private:
 	StateInfoType* get_or_make_state_info(const std::string& name)
 	{
@@ -193,12 +205,6 @@ private:
 		if (itr == _state_info.end())
 			return nullptr;
 		return &itr->second;
-	}
-
-	void enter_state(const std::string& state)
-	{
-		_current_state = get_state_info(state);
-		assert(_current_state && "Transition to unknown state in tokenizer");
 	}
 
 	const GrammarType* _grammar;

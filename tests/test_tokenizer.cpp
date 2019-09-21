@@ -237,3 +237,29 @@ StatesAndTransitions) {
 	EXPECT_FALSE(t.next_token());
 	t.pop_input_stream();
 }
+
+TEST_F(TestTokenizer,
+EnterState) {
+	auto a = grammar.add_symbol(SymbolKind::Terminal, "a");
+	auto b = grammar.add_symbol(SymbolKind::Terminal, "b");
+
+	Tokenizer<int> t(&grammar);
+
+	auto a_t = t.add_token("aaa", a, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
+	auto b_t = t.add_token("bbb", b, std::vector<std::string>{"state1"});
+	t.prepare();
+
+	t.enter_state("state1");
+
+	std::stringstream input("aaabbb");
+	t.push_input_stream(input);
+	EXPECT_FALSE(t.next_token());
+	t.pop_input_stream();
+
+	std::stringstream input2("bbbbbb");
+	t.push_input_stream(input2);
+	EXPECT_TRUE(t.next_token());
+	EXPECT_TRUE(t.next_token());
+	EXPECT_FALSE(t.next_token());
+	t.pop_input_stream();
+}

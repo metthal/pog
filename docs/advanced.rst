@@ -141,6 +141,13 @@ other tokens because we know we are in a specific context in which characters ha
     .states("state1") // only active in state1
     .enter_state("@default"); // causes transition to default state
 
+You can also explicitly call parser method ``enter_tokenizer_state`` to trigger state transition anywhere you want.
+
+.. attention::
+
+  Be aware that changing tokenizer state in midrule actions may not always work like you want. In order for midrule action to performed, parser needs to read the following token from the
+  input. If you therefore perform state transition in the midrule action, the next token is already tokenized from your current state, not from the state you are transitioning into.
+
 Input stream stack
 ==================
 
