@@ -99,6 +99,11 @@ public:
 		_grammar.set_start_symbol(_grammar.add_symbol(SymbolKind::Nonterminal, name));
 	}
 
+	void enter_tokenizer_state(const std::string& state_name)
+	{
+		_tokenizer.enter_state(state_name);
+	}
+
 	void push_input_stream(std::istream& input)
 	{
 		_tokenizer.push_input_stream(input);
@@ -111,6 +116,8 @@ public:
 
 	std::optional<ValueT> parse(std::istream& input)
 	{
+		_tokenizer.enter_state(std::string{decltype(_tokenizer)::DefaultState});
+
 		std::optional<TokenMatchType> token;
 		_tokenizer.push_input_stream(input);
 

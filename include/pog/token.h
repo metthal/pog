@@ -18,9 +18,13 @@ public:
 	using SymbolType = Symbol<ValueT>;
 	using CallbackType = std::function<ValueT(std::string_view)>;
 
-	Token(std::uint32_t index, const std::string& pattern) : Token(index, pattern, nullptr) {}
-	Token(std::uint32_t index, const std::string& pattern, const SymbolType* symbol)
-		: _index(index), _pattern(pattern), _symbol(symbol), _regexp(std::make_unique<re2::RE2>(_pattern)), _action(), _enter_state() {}
+	template <typename StatesT>
+	Token(std::uint32_t index, const std::string& pattern, StatesT&& active_in_states) : Token(index, pattern, std::forward<StatesT>(active_in_states), nullptr) {}
+
+	template <typename StatesT>
+	Token(std::uint32_t index, const std::string& pattern, StatesT&& active_in_states, const SymbolType* symbol)
+		: _index(index), _pattern(pattern), _symbol(symbol), _regexp(std::make_unique<re2::RE2>(_pattern)), _action(),
+			_enter_state(), _active_in_states(std::forward<StatesT>(active_in_states)) {}
 
 	std::uint32_t get_index() const { return _index; }
 	const std::string& get_pattern() const { return _pattern; }
@@ -53,6 +57,17 @@ public:
 		return _enter_state.value();
 	}
 
+	template <typename StrT>
+	void add_active_in_state(StrT&& state)
+	{
+		_active_in_states.push_back(std::forward<StrT>(state));
+	}
+
+	const std::vector<std::string>& get_active_in_states() const
+	{
+		return _active_in_states;
+	}
+
 private:
 	std::uint32_t _index;
 	std::string _pattern;
@@ -60,6 +75,7 @@ private:
 	std::unique_ptr<re2::RE2> _regexp;
 	CallbackType _action;
 	std::optional<std::string> _enter_state;
+	std::vector<std::string> _active_in_states;
 };
 
 } // namespace pog
