@@ -45,8 +45,6 @@ public:
 		// Iterate over all states in the LR automaton
 		for (const auto& state : Parent::_automaton->get_states())
 		{
-			// Remember what symbols we have already processed for a single state, we don't want to repeat ourselves.
-			std::unordered_set<const SymbolType*> visited_symbols;
 			for (const auto& item : *state.get())
 			{
 				// We are looking for items in form A -> a <*> B b so we are not intersted in final items
@@ -54,11 +52,7 @@ public:
 					continue;
 
 				// Get the symbol right next to <*> in an item
-				// If we already processed it then we can ignore it
 				auto next_symbol = item->get_read_symbol();
-				if (visited_symbols.find(next_symbol) != visited_symbols.end())
-					continue;
-				visited_symbols.insert(next_symbol);
 
 				// If the next symbol is not nonterminal then we are again not interested
 				if (!next_symbol->is_nonterminal())

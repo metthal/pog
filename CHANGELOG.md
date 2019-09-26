@@ -1,3 +1,7 @@
+# dev
+
+* Fixed calulcation of includes and lookback relations when there are more instances of the same symbol inspected
+
 # v0.3.0 (2019-09-22)
 
 * Midrule actions and all preceding symbols are now accessible from later actions in that rule

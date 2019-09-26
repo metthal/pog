@@ -845,3 +845,29 @@ EndInputInNonDefaultTokenizerState) {
 		EXPECT_STREQ(e.what(), "Syntax error: Unknown symbol on input, expected one of @end, a, b");
 	}
 }
+
+TEST_F(TestParser,
+IncludesRelationCalulcatedCorrectlyForSameRightHandSifePrefix) {
+	Parser<int> p;
+
+	p.token("a").symbol("a");
+	p.token("b").symbol("b");
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("A");
+	p.rule("A")
+		.production("B", "b")
+		.production("B");
+	p.rule("B")
+		.production("a");
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("a");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+
+	std::stringstream input2("ab");
+	result = p.parse(input2);
+	EXPECT_TRUE(result);
+}
