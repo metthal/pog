@@ -34,3 +34,11 @@ into PNG image.
 .. code-block:: bash
 
   dot -Tpng -o automaton.png <INPUT_FILE>
+
+Runtime debugging
+=================
+
+Since parsers are rather complex, it is hard to debug them line by line because there is too much going on and we are only mostly interested in what is parser doing and not what is the whole framework doing.
+Therefore we provide an option to compile your project so that *pog* prints out additional debug messages on standard debug output. In order to use them, define preprocessor macro ``POG_DEBUG``
+before including the very first *pog* related header file. That will cause parser and tokenizer to print out debugging messages. If you want only parser or only tokenizer messages, define
+``POG_DEBUG_PARSER`` or ``POG_DEBUG_TOKENIZER`` instead of ``POG_DEBUG``. These messages have no overhead if they are not requested to be printed so you don't have to worry about that.

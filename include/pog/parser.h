@@ -3,6 +3,23 @@
 #include <deque>
 #include <unordered_map>
 
+#include <fmt/format.h>
+
+#ifdef POG_DEBUG
+#define POG_DEBUG_PARSER 1
+#endif
+
+#ifdef POG_DEBUG_PARSER
+template <typename... Args>
+void debug_parser(Args&&... args)
+{
+	fmt::print(stderr, "[parser] {}\n", fmt::format(std::forward<Args>(args)...));
+}
+#else
+template <typename... Args>
+void debug_parser(Args&&...) {}
+#endif
+
 #include <pog/action.h>
 #include <pog/automaton.h>
 #include <pog/errors.h>
@@ -136,7 +153,13 @@ public:
 					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
 					throw SyntaxError(expected_symbols);
 				}
+
+				debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
 			}
+			else
+				debug_parser("Reusing old token with symbol \'{}\'", token.value().symbol->get_name());
+
+			debug_parser("Top of the stack is state {}", stack.back().first);
 
 			const auto* next_symbol = token.value().symbol;
 			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
@@ -151,6 +174,7 @@ public:
 			if (std::holds_alternative<ReduceActionType>(action))
 			{
 				const auto& reduce = std::get<ReduceActionType>(action);
+				debug_parser("Reducing by rule \'{}\'", reduce.rule->to_string());
 
 				// Each symbol on right-hand side of the rule should have record on the stack
 				// We'll pop them out and put them in reverse order so user have them available
@@ -196,6 +220,8 @@ public:
 						stack.pop_back();
 				}
 
+				debug_parser("Pushing state {}", maybe_next_state.value()->get_index());
+
 				stack.emplace_back(
 					maybe_next_state.value()->get_index(),
 					std::move(action_result)
@@ -203,12 +229,15 @@ public:
 			}
 			else if (std::holds_alternative<ShiftActionType>(action))
 			{
+				const auto& shift = std::get<ShiftActionType>(action);
+				debug_parser("Shifting state {}", shift.state->get_index());
+
 				// Notice how std::move() is only around optional itself and not the whole expressions
 				// We need to do this in order to perform move together with value()
 				// See: https://en.cppreference.com/w/cpp/utility/optional/value
 				// Return by rvalue is performed only when value() is called from r-value
 				stack.emplace_back(
-					std::get<ShiftActionType>(action).state->get_index(),
+					shift.state->get_index(),
 					std::move(token).value().value
 				);
 
@@ -217,6 +246,7 @@ public:
 			}
 			else if (std::holds_alternative<Accept>(action))
 			{
+				debug_parser("Accept");
 				// Notice how std::move() is only around optional itself and not the whole expressions
 				// We need to do this in order to perform move together with value()
 				// See: https://en.cppreference.com/w/cpp/utility/optional/value

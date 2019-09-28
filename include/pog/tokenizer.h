@@ -3,7 +3,23 @@
 #include <memory>
 #include <vector>
 
+#include <fmt/format.h>
 #include <re2/set.h>
+
+#ifdef POG_DEBUG
+#define POG_DEBUG_TOKENIZER 1
+#endif
+
+#ifdef POG_DEBUG_TOKENIZER
+template <typename... Args>
+void debug_tokenizer(Args&&... args)
+{
+	fmt::print(stderr, "[tokenizer] {}\n", fmt::format(std::forward<Args>(args)...));
+}
+#else
+template <typename... Args>
+void debug_tokenizer(Args&&...) {}
+#endif
 
 #include <pog/grammar.h>
 #include <pog/token.h>
@@ -122,7 +138,10 @@ public:
 		{
 			// We've emptied the stack so that means return end symbol to parser
 			if (_input_stack.empty())
+			{
+				debug_tokenizer("Input stack empty - returing end of input");
 				return _grammar->get_end_of_input_symbol();
+			}
 
 			auto& current_input = _input_stack.back();
 			if (!current_input.at_end)
@@ -133,7 +152,10 @@ public:
 
 				// Haven't matched anything, tokenization failure, we will get into endless loop
 				if (matched_patterns.empty())
+				{
+					debug_tokenizer("Nothing matched on the current input");
 					return std::nullopt;
+				}
 
 				re2::StringPiece submatch;
 				const TokenType* best_match = nullptr;
@@ -155,13 +177,20 @@ public:
 				}
 
 				if (current_input.stream.size() == 0)
+				{
+					debug_tokenizer("Reached end of input");
 					current_input.at_end = true;
+				}
 
 				if (best_match->has_transition_to_state())
+				{
 					enter_state(best_match->get_transition_to_state());
+					debug_tokenizer("Entered state \'{}\'", best_match->get_transition_to_state());
+				}
 
 				std::string_view token_str{current_input.stream.data(), static_cast<std::size_t>(longest_match)};
 				current_input.stream.remove_prefix(longest_match);
+				debug_tokenizer("Matched \'{}\' with token \'{}\' (index {})", token_str, best_match->get_pattern(), best_match->get_index());
 
 				ValueT value{};
 				if (best_match->has_action())
@@ -172,6 +201,8 @@ public:
 
 				return TokenMatchType{best_match->get_symbol(), std::move(value), static_cast<std::size_t>(longest_match)};
 			}
+			else
+				debug_tokenizer("At the end of input");
 
 			// There is still something on stack but we've reached the end and noone popped it so return end symbol to parser
 			return _grammar->get_end_of_input_symbol();

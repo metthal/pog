@@ -1,6 +1,7 @@
 # dev
 
 * Fixed calulcation of includes and lookback relations when there are more instances of the same symbol inspected
+* Added option to define `POG_DEBUG` to print debugging messages from parser adn tokenizer
 
 # v0.3.0 (2019-09-22)
 
