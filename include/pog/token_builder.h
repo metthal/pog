@@ -27,7 +27,7 @@ public:
 		if (!_end_token)
 		{
 			auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
-			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, std::move(_in_states));
+			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, std::move(_in_states), _description);
 			if (symbol && _precedence)
 			{
 				const auto& prec = _precedence.value();
@@ -60,6 +60,12 @@ public:
 		return *this;
 	}
 
+	TokenBuilder& description(const std::string& text)
+	{
+		_description = text;
+		return *this;
+	}
+
 	template <typename CallbackT>
 	TokenBuilder& action(CallbackT&& action)
 	{
@@ -89,6 +95,7 @@ public:
 private:
 	GrammarType* _grammar;
 	TokenizerType* _tokenizer;
+	std::string _description;
 	std::string _pattern;
 	std::string _symbol_name;
 	std::optional<Precedence> _precedence;
