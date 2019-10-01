@@ -669,3 +669,205 @@ InputStreamStackManipulation) {
 	EXPECT_TRUE(result);
 	EXPECT_EQ(result.value(), 1215);
 }
+
+TEST_F(TestParser,
+RuleActionsAccessingDataBeforeMidruleAction) {
+	Parser<int> p;
+
+	p.token("\\s+");
+	p.token("a").symbol("a").action([](std::string_view) {
+		return 1;
+	});
+	p.token("function").symbol("func").action([](std::string_view) {
+		return 10;
+	});
+	p.token("[a-zA-Z_]+").symbol("id").action([](std::string_view) {
+		return 100;
+	});
+
+	std::vector<int> all_values;
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("func", "id", [](auto&& args) {
+				return args[0] + args[1];
+			},
+			"A", [&](auto&& args) {
+				for (const auto& arg : args)
+					all_values.push_back(arg);
+				return args[2] + args[3];
+			});
+	p.rule("A")
+		.production("A", "a", [](auto&& args) { return args[0] + args[1]; })
+		.production("a", [](auto&& args) { return args[0]; });
+
+
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input("function abc a a a a a");
+	auto result = p.parse(input);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 115);
+	EXPECT_EQ(all_values, (std::vector<int>{10, 100, 110, 5}));
+}
+
+TEST_F(TestParser,
+MultistateTokenizerWithExplicitCalls) {
+	using Value = std::variant<
+		std::string,
+		std::pair<std::string, std::string>,
+		std::vector<std::pair<std::string, std::string>>
+	>;
+
+	Parser<Value> p;
+	std::string built_string;
+
+	p.token("\\s+");
+	p.token("=").symbol("=");
+	p.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("id").action([](std::string_view str) -> Value {
+		return std::string{str};
+	});
+
+	p.token(R"(")").action([&](std::string_view) -> Value {
+		p.enter_tokenizer_state("string");
+		built_string.clear();
+		return {};
+	});
+	p.token(R"(\\n)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\n';
+		return {};
+	});
+	p.token(R"(\\t)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\t';
+		return {};
+	});
+	p.token(R"(\\r)").states("string").action([&](std::string_view) -> Value {
+		built_string += '\r';
+		return {};
+	});
+	p.token(R"(\\x[0-9a-fA-F]{2})").states("string").action([&](std::string_view str) -> Value {
+		auto s = std::string{str.begin() + 2, str.end()};
+		built_string += static_cast<char>(std::stoi(s, nullptr, 16));
+		return {};
+	});
+	p.token(R"([^\\"]+)").states("string").action([&](std::string_view str) -> Value {
+		built_string += str;
+		return {};
+	});
+	p.token(R"(")").states("string").symbol("string_literal").action([&](std::string_view) -> Value {
+		p.enter_tokenizer_state("@default");
+		return built_string;
+	});
+
+	p.set_start_symbol("root");
+	p.rule("root")
+		.production("strings", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production([](auto&&) -> Value {
+			return std::vector<std::pair<std::string, std::string>>{};
+		});
+	p.rule("strings")
+		.production("strings", "string", [](auto&& args) -> Value {
+			std::get<std::vector<std::pair<std::string, std::string>>>(args[0]).push_back(
+				std::get<std::pair<std::string, std::string>>(args[1])
+			);
+			return std::move(args[0]);
+		})
+		.production("string", [](auto&& args) -> Value {
+			return std::vector<std::pair<std::string, std::string>>{
+				std::get<std::pair<std::string, std::string>>(args[0])
+			};
+		});
+	p.rule("string")
+		.production("id", "=", "string_literal", [](auto&& args) -> Value {
+			return std::make_pair(
+				std::get<std::string>(args[0]),
+				std::get<std::string>(args[2])
+			);
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input(
+		"abc = \"xyz\"\n"
+		"x = \"ab\\n\\t\\r\\x20cd\""
+	);
+	auto result = p.parse(input);
+	EXPECT_TRUE(result);
+	auto strings = std::get<std::vector<std::pair<std::string, std::string>>>(result.value());
+	EXPECT_EQ(strings.size(), 2u);
+	EXPECT_THAT(strings[0], Pair(Eq("abc"), Eq("xyz")));
+	EXPECT_THAT(strings[1], Pair(Eq("x"), Eq("ab\n\t\r cd")));
+}
+
+TEST_F(TestParser,
+EndInputInNonDefaultTokenizerState) {
+	Parser<int> p;
+
+	p.token("a").symbol("a").enter_state("special");
+	p.token("b").symbol("b").enter_state("@default");
+	p.end_token().states("@default", "special");
+
+	p.set_start_symbol("A");
+	p.rule("A")
+		.production("A", "a", [](auto&& args) {
+			return 1 + args[0];
+		})
+		.production("A", "b", [](auto&& args) {
+			return 1 + args[0];
+		})
+		.production("a", [](auto&&) {
+			return 1;
+		})
+		.production("b", [](auto&&) {
+			return 1;
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("a");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 1);
+
+	std::stringstream input2("bbbba");
+	result = p.parse(input2);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 5);
+
+	try
+	{
+		std::stringstream input3("bbbbab");
+		p.parse(input3);
+		FAIL() << "Expected syntax error";
+	}
+	catch (const SyntaxError& e)
+	{
+		EXPECT_STREQ(e.what(), "Syntax error: Unknown symbol on input, expected one of @end, a, b");
+	}
+}
+
+TEST_F(TestParser,
+IncludesRelationCalulcatedCorrectlyForSameRightHandSifePrefix) {
+	Parser<int> p;
+
+	p.token("a").symbol("a");
+	p.token("b").symbol("b");
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("A");
+	p.rule("A")
+		.production("B", "b")
+		.production("B");
+	p.rule("B")
+		.production("a");
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("a");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+
+	std::stringstream input2("ab");
+	result = p.parse(input2);
+	EXPECT_TRUE(result);
+}

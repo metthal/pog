@@ -48,19 +48,14 @@ public:
 		// Iterate over all states of LR automaton
 		for (const auto& state : Parent::_automaton->get_states())
 		{
-			// Remember what symbols we have already processed for a single state, we don't want to repeat ourselves.
-			std::unordered_set<const SymbolType*> visited_symbols;
 			for (const auto& item : *state.get())
 			{
 				// We are not interested in items other than in form A -> x <*>
 				if (!item->is_final())
 					continue;
 
-				// We haven't already processed left-hand side symbol of a rule
+				// Get left-hand side symbol of a rule
 				auto prod_symbol = item->get_rule()->get_lhs();
-				if (visited_symbols.find(prod_symbol) != visited_symbols.end())
-					continue;
-				visited_symbols.insert(prod_symbol);
 
 				// Now we'll start backtracking through LR automaton using backtransitions.
 				// We'll basically just go in the different direction of arrows in the automata.

@@ -27,7 +27,7 @@ public:
 		if (!_end_token)
 		{
 			auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
-			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, _in_states);
+			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, std::move(_in_states));
 			if (symbol && _precedence)
 			{
 				const auto& prec = _precedence.value();
@@ -38,7 +38,11 @@ public:
 				token->set_transition_to_state(_enter_state.value());
 		}
 		else
+		{
 			token = _tokenizer->get_end_token();
+			for (auto&& state : _in_states)
+				token->add_active_in_state(std::move(state));
+		}
 
 		if (_action)
 			token->set_action(std::move(_action));

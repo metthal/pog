@@ -9,10 +9,11 @@ class TestToken : public ::testing::Test {};
 
 TEST_F(TestToken,
 SimpleTokenWithoutSymbol) {
-	Token<int> t(1, "abc");
+	Token<int> t(1, "abc", std::vector<std::string>{"s1", "s2"});
 
 	EXPECT_EQ(t.get_index(), 1u);
 	EXPECT_EQ(t.get_pattern(), "abc");
+	EXPECT_EQ(t.get_active_in_states(), (std::vector<std::string>{"s1", "s2"}));
 	EXPECT_EQ(t.get_symbol(), nullptr);
 	EXPECT_THAT(t.get_regexp(), A<const re2::RE2*>());
 
@@ -24,10 +25,11 @@ SimpleTokenWithoutSymbol) {
 TEST_F(TestToken,
 SimpleTokenWithSymbol) {
 	Symbol<int> s(1, SymbolKind::Nonterminal, "a");
-	Token<int> t(1, "abc", &s);
+	Token<int> t(1, "abc", std::vector<std::string>{"s1", "s2"}, &s);
 
 	EXPECT_EQ(t.get_index(), 1u);
 	EXPECT_EQ(t.get_pattern(), "abc");
+	EXPECT_EQ(t.get_active_in_states(), (std::vector<std::string>{"s1", "s2"}));
 	EXPECT_EQ(t.get_symbol(), &s);
 	EXPECT_THAT(t.get_regexp(), A<const re2::RE2*>());
 
@@ -38,11 +40,12 @@ SimpleTokenWithSymbol) {
 
 TEST_F(TestToken,
 TransitionToState) {
-	Token<int> t(1, "abc");
+	Token<int> t(1, "abc", std::vector<std::string>{"s1", "s2"});
 	t.set_transition_to_state("dest_state");
 
 	EXPECT_EQ(t.get_index(), 1u);
 	EXPECT_EQ(t.get_pattern(), "abc");
+	EXPECT_EQ(t.get_active_in_states(), (std::vector<std::string>{"s1", "s2"}));
 	EXPECT_EQ(t.get_symbol(), nullptr);
 	EXPECT_THAT(t.get_regexp(), A<const re2::RE2*>());
 
@@ -53,10 +56,19 @@ TransitionToState) {
 }
 
 TEST_F(TestToken,
+AddActiveInState) {
+	Token<int> t(1, "abc", std::vector<std::string>{"s1", "s2"});
+
+	t.add_active_in_state("s3");
+
+	EXPECT_EQ(t.get_active_in_states(), (std::vector<std::string>{"s1", "s2", "s3"}));
+}
+
+TEST_F(TestToken,
 Action) {
 	bool called = false;
 
-	Token<int> t(1, "abc");
+	Token<int> t(1, "abc", std::vector<std::string>{"s1", "s2"});
 	t.set_action([&](std::string_view str) -> int {
 		called = true;
 		return static_cast<int>(str.length());
