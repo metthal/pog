@@ -27,12 +27,14 @@ public:
 		if (!_end_token)
 		{
 			auto* symbol = !_symbol_name.empty() ? _grammar->add_symbol(SymbolKind::Terminal, _symbol_name) : nullptr;
-			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, std::move(_in_states), _description);
+			token = _tokenizer->add_token(_fullword ? fmt::format("{}(\\b|$)", _pattern) : _pattern, symbol, std::move(_in_states));
 			if (symbol && _precedence)
 			{
 				const auto& prec = _precedence.value();
 				symbol->set_precedence(prec.level, prec.assoc);
 			}
+			if(symbol && _description.size() != 0)
+			 	symbol->set_description(_description);
 
 			if (_enter_state)
 				token->set_transition_to_state(_enter_state.value());

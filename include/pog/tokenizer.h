@@ -106,9 +106,9 @@ public:
 		return _tokens[0].get();
 	}
 
-	TokenType* add_token(const std::string& pattern, const SymbolType* symbol, const std::vector<std::string>& states, const std::string& description = "")
+	TokenType* add_token(const std::string& pattern, const SymbolType* symbol, const std::vector<std::string>& states)
 	{
-		_tokens.push_back(std::make_unique<TokenType>(static_cast<std::uint32_t>(_tokens.size()), pattern, states, symbol, description));
+		_tokens.push_back(std::make_unique<TokenType>(static_cast<std::uint32_t>(_tokens.size()), pattern, states, symbol));
 		return _tokens.back().get();
 	}
 

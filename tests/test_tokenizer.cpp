@@ -29,9 +29,8 @@ AddToken) {
 	t.add_token("aaa", a, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
 	t.add_token("bbb", b, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
 	t.add_token("ccc", nullptr, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
-	t.add_token("ddd", nullptr, std::vector<std::string>{std::string{decltype(t)::DefaultState}}, "ddd token");
 
-	EXPECT_EQ(t.get_tokens().size(), 5u);
+	EXPECT_EQ(t.get_tokens().size(), 4u);
 	EXPECT_EQ(t.get_tokens()[1]->get_pattern(), "aaa");
 	EXPECT_TRUE(t.get_tokens()[1]->has_symbol());
 	EXPECT_EQ(t.get_tokens()[1]->get_symbol(), a);
@@ -40,9 +39,6 @@ AddToken) {
 	EXPECT_EQ(t.get_tokens()[2]->get_symbol(), b);
 	EXPECT_EQ(t.get_tokens()[3]->get_pattern(), "ccc");
 	EXPECT_FALSE(t.get_tokens()[3]->has_symbol());
-	EXPECT_EQ(t.get_tokens()[4]->get_pattern(), "ddd");
-	EXPECT_FALSE(t.get_tokens()[4]->has_symbol());
-	EXPECT_EQ(t.get_tokens()[4]->get_description(), "ddd token");
 }
 
 TEST_F(TestTokenizer,

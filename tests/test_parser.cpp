@@ -129,6 +129,56 @@ SameNumberOfAsAndBs) {
 }
 
 TEST_F(TestParser,
+SymbolDescriptionInErrorMessages) {
+	Parser<int> p;
+
+	p.token("a").symbol("a");
+	p.token("b").symbol("b").description("symbol_b");
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("a", "S", "b", [](auto&& args) {
+			return 1 + args[1];
+		})
+		.production("a", "b", [](auto&&) {
+			return 1;
+		});
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("ab");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 1);
+
+	std::stringstream input2("aaabbb");
+	result = p.parse(input2);
+	EXPECT_TRUE(result);
+	EXPECT_EQ(result.value(), 3);
+
+	try
+	{
+		std::stringstream input3("aabbb");
+		p.parse(input3);
+		FAIL() << "Expected syntax error";
+	}
+	catch (const SyntaxError& e)
+	{
+		EXPECT_STREQ(e.what(), "Syntax error: Unexpected symbol_b, expected one of @end");
+	}
+
+	try
+	{
+		std::stringstream input4("aaabb");
+		p.parse(input4);
+		FAIL() << "Expected syntax error";
+	}
+	catch (const SyntaxError& e)
+	{
+		EXPECT_STREQ(e.what(), "Syntax error: Unexpected @end, expected one of symbol_b");
+	}
+}
+
+TEST_F(TestParser,
 LalrButNotLrNorNqlalr) {
 	Parser<int> p;
 
