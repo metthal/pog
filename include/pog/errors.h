@@ -34,12 +34,12 @@ public:
 	{
 		std::vector<std::string> expected_symbols_str(expected_symbols.size());
 		std::transform(expected_symbols.begin(), expected_symbols.end(), expected_symbols_str.begin(), [](const auto& sym) {
-			return sym->get_name();
+			return sym->get_description();
 		});
 
 		_msg = fmt::format(
 			"Syntax error: Unexpected {}, expected one of {}",
-			unexpected_symbol->get_name(),
+			unexpected_symbol->get_description(),
 			fmt::join(expected_symbols_str.begin(), expected_symbols_str.end(), ", ")
 		);
 	}
@@ -49,7 +49,7 @@ public:
 	{
 		std::vector<std::string> expected_symbols_str(expected_symbols.size());
 		std::transform(expected_symbols.begin(), expected_symbols.end(), expected_symbols_str.begin(), [](const auto& sym) {
-			return sym->get_name();
+			return sym->get_description();
 		});
 
 		_msg = fmt::format(

@@ -57,14 +57,16 @@ SingleTokenWithSymbol) {
 TEST_F(TestTokenBuilder,
 SingleTokenWithDescription) {
 	TokenBuilder<int> tb(&grammar, &tokenizer, "abc");
+	tb.symbol("ABC");
 	tb.description("abc token");
 	tb.done();
 
-	EXPECT_EQ(grammar.get_symbols().size(), 2u);
+	EXPECT_EQ(grammar.get_symbols().size(), 3u);
 	EXPECT_EQ(tokenizer.get_tokens().size(), 2u);
 
+	EXPECT_EQ(grammar.get_symbols()[2]->get_name(), "ABC");
+	EXPECT_EQ(grammar.get_symbols()[2]->get_description(), "abc token");
 	EXPECT_EQ(tokenizer.get_tokens()[1]->get_pattern(), "abc");
-	EXPECT_EQ(tokenizer.get_tokens()[1]->get_description(), "abc token");
 }
 
 TEST_F(TestTokenBuilder,
