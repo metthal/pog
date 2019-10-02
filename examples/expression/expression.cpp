@@ -82,7 +82,7 @@ int main()
 	Parser<Value> _parser;
 
 	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("\\)").symbol("RP").precedence(1, Associativity::Left).action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("\\)").symbol("RP").precedence(1/*Try 0*/, Associativity::Left).action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("<").symbol("LT").action( [&](std::string_view str) -> Value { return std::string{str}; } )
 		.precedence(10, pog::Associativity::Left);
 	_parser.token("filesize").symbol("FILESIZE").action( [&](std::string_view str) -> Value { return std::string{str}; } );
@@ -102,7 +102,7 @@ int main()
 		})
 		.production("primary_expression", [&](auto&& args) -> Value {
 			return std::move(args[0]);
-		}).precedence(0, pog::Associativity::Left)
+		}).precedence(0/*Try 1*/, pog::Associativity::Left)
 		.production("LP", "expression", "RP", [&](auto&& args) -> Value {
 			std::cout << "expression -> ( expression )" << std::endl;
 			auto output = std::vector<std::string>();
