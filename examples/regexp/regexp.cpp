@@ -108,36 +108,24 @@ int main()
 		//// 	concat.push_back(std::move(arg));
 		//// 	return Value(std::move(concat));
 		//// })
-		;
+		//// ;
 	_parser.rule("regexp_concat") //vector<shared_ptr<RegexpUnit>>
 		.production("regexp_repeat", [](auto&& args) -> Value {
-			//// std::cout << "leaf repeat matched " << std::endl;
 			std::vector<std::string> output;
 			output.push_back(std::move(args[0].getString()));
 			return Value(std::move(output));
 		})
 		.production("regexp_concat", "regexp_repeat", [](auto&& args) -> Value {
-			//// std::cout << "nonleaf repeat matched " << std::endl;
 			std::vector<std::string> output = std::move(args[0].getVector());
 			output.push_back(std::move(args[1].getString()));
 			return Value(std::move(output));
 		})
 		;
 	_parser.rule("regexp_repeat") //shared_ptr<RegexpUnit>
-		// .production("regexp_single", "REGEXP_PITER", /*"regexp_greedy",*/ [](auto&& args) -> Value {
-		// 	std::stringstream ss;
-		// 	ss << args[0].getString() << args[2].getString();
-		// 	return Value(std::move(ss.str()));
-		// })
 		.production("regexp_single", [](auto&& args) -> Value {
-			//// std::cout << "matched single" << std::endl;
 			return std::move(args[0]);
 		})
 		;
-	//// _parser.rule("regexp_greedy")
-	//// 	.production([](auto&&) -> Value { return {}; })
-	//// 	.production("REGEXP_OPTIONAL", [](auto&& args) -> Value { return std::move(args[0]); })
-	//// 	;
 
 	_parser.rule("regexp_single")
 		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return std::move(args[0]); })
