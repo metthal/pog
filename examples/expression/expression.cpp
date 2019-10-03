@@ -52,7 +52,7 @@ protected:
       catch (std::bad_variant_access& exp)
       {
          std::cerr << "Called Value.getValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
+         // std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
@@ -66,7 +66,7 @@ protected:
       catch (std::bad_variant_access& exp)
       {
           std::cerr << "Called Value.moveValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         //std::cerr << __PRETTY_FUNCTION__ << std::endl;
+         // std::cerr << __PRETTY_FUNCTION__ << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
