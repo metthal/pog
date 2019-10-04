@@ -62,6 +62,8 @@ template <typename ValueT>
 class Tokenizer
 {
 public:
+	using CallbackType = std::function<void(std::string_view)>;
+
 	static constexpr std::string_view DefaultState = "@default";
 
 	using GrammarType = Grammar<ValueT>;
@@ -70,7 +72,7 @@ public:
 	using TokenType = Token<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 
-	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _state_info(), _input_stack(), _current_state(nullptr)
+	Tokenizer(const GrammarType* grammar) : _grammar(grammar), _tokens(), _state_info(), _input_stack(), _current_state(nullptr), _global_action()
 	{
 		_current_state = get_or_make_state_info(std::string{DefaultState});
 		add_token("$", nullptr, std::vector<std::string>{std::string{DefaultState}});
@@ -129,6 +131,11 @@ public:
 	void pop_input_stream()
 	{
 		_input_stack.pop_back();
+	}
+
+	void global_action(CallbackType&& global_action)
+	{
+		_global_action = std::move(global_action);
 	}
 
 	std::optional<TokenMatchType> next_token()
@@ -192,6 +199,9 @@ public:
 				current_input.stream.remove_prefix(longest_match);
 				debug_tokenizer("Matched \'{}\' with token \'{}\' (index {})", token_str, best_match->get_pattern(), best_match->get_index());
 
+				if (_global_action)
+					_global_action(token_str);
+
 				ValueT value{};
 				if (best_match->has_action())
 					value = best_match->perform_action(token_str);
@@ -244,6 +254,7 @@ private:
 	std::unordered_map<std::string, StateInfoType> _state_info;
 	std::vector<InputStream> _input_stack;
 	StateInfoType* _current_state;
+	CallbackType _global_action;
 };
 
 } // namespace pog

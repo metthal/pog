@@ -871,3 +871,40 @@ IncludesRelationCalulcatedCorrectlyForSameRightHandSifePrefix) {
 	result = p.parse(input2);
 	EXPECT_TRUE(result);
 }
+
+TEST_F(TestParser,
+GlobalTokenizerAction) {
+	Parser<int> p;
+
+	std::pair<std::size_t, std::size_t> location = {1, 0};
+	p.global_tokenizer_action([&](std::string_view str) {
+		location.second += str.length();
+	});
+
+	p.token(R"(\n)").action([&](std::string_view) {
+		location.first++;
+		location.second = 0;
+		return 0;
+	});
+	p.token(R"([ \t\v\r]+)");
+	p.token("a+").symbol("As");
+	p.token("b{3}").symbol("Bs");
+
+	p.set_start_symbol("S");
+	p.rule("S")
+		.production("S", "As")
+		.production("S", "Bs")
+		.production();
+	EXPECT_TRUE(p.prepare());
+
+	std::stringstream input1("aaaaa");
+	auto result = p.parse(input1);
+	EXPECT_TRUE(result);
+	EXPECT_THAT(location, Pair(Eq(1), Eq(5)));
+
+	location = {1, 0};
+	std::stringstream input2("aaa \nbbb bbb\n \n\na");
+	result = p.parse(input2);
+	EXPECT_TRUE(result);
+	EXPECT_THAT(location, Pair(Eq(5), Eq(1)));
+}

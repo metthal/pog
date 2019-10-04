@@ -65,6 +65,7 @@ public:
 	using TokenBuilderType = TokenBuilder<ValueT>;
 	using TokenMatchType = TokenMatch<ValueT>;
 	using TokenType = Token<ValueT>;
+	using TokenizerType = Tokenizer<ValueT>;
 
 	Parser() : _grammar(), _tokenizer(&_grammar), _automaton(&_grammar), _includes(&_automaton, &_grammar),
 		_lookback(&_automaton, &_grammar), _read_operation(&_automaton, &_grammar), _follow_operation(&_automaton, &_grammar, _includes, _read_operation),
@@ -129,6 +130,11 @@ public:
 	void pop_input_stream()
 	{
 		_tokenizer.pop_input_stream();
+	}
+
+	void global_tokenizer_action(typename TokenizerType::CallbackType&& global_action)
+	{
+		_tokenizer.global_action(std::move(global_action));
 	}
 
 	std::optional<ValueT> parse(std::istream& input)

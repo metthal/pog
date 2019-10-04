@@ -182,3 +182,16 @@ This can be useful for implementing things like ``include`` of another file.
 
 In the example above you can see how to implement basic include-like functionality that allows you to include one of ``input_streams`` by their index. It also works recursively out of the box.
 Be aware that you need to ensure the lifetime of your input stream is longer than its use in parser because parser does not take ownership of your streams.
+
+Global tokenizer actions
+========================
+
+Sometimes you might want to perform tokenizer action for each token for example when trying to keep track of line numbers and column numbers for better error messages. Doing it for every single
+token would be exhausting and obnoxious. Therefore `pog` provides option to specify global tokenizer action that is performed for every single token. Global tokenizer action has no return
+type and it is always performed before the action associated with the token. You can specify global tokenizer action using method ``global_tokenizer_action`` the following way.
+
+.. code-block:: cpp
+
+  parser.global_tokenizer_action([](std::string_view str) {
+    std:: cout << "Token length is " << str.length() << std::endl;
+  });
