@@ -168,6 +168,36 @@ TokenActionsPerformed) {
 }
 
 TEST_F(TestTokenizer,
+NextTokenGlobalActionPerformed) {
+	auto a = grammar.add_symbol(SymbolKind::Terminal, "a");
+	auto b = grammar.add_symbol(SymbolKind::Terminal, "b");
+
+	Tokenizer<int> t(&grammar);
+
+	std::vector<std::string> matches;
+
+	t.global_action([&](std::string_view str) {
+		matches.push_back(fmt::format("global:{}", str));
+	});
+	auto a_t = t.add_token("a+", a, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
+	a_t->set_action([&](std::string_view str) {
+		matches.push_back(std::string{str});
+		return 0;
+	});
+	t.add_token("b+", b, std::vector<std::string>{std::string{decltype(t)::DefaultState}});
+	t.prepare();
+
+	std::stringstream input("aabbbbaaaaabb");
+	t.push_input_stream(input);
+
+	for (auto i = 0; i < 5; ++i)
+		t.next_token();
+
+	EXPECT_EQ(matches.size(), 7u);
+	EXPECT_EQ(matches, (std::vector<std::string>{"global:aa", "aa", "global:bbbb", "global:aaaaa", "aaaaa", "global:bb", "global:"}));
+}
+
+TEST_F(TestTokenizer,
 InputStreamStackManipulation) {
 	auto a = grammar.add_symbol(SymbolKind::Terminal, "a");
 	auto b = grammar.add_symbol(SymbolKind::Terminal, "b");

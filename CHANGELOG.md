@@ -1,5 +1,9 @@
 # dev
 
+* Added support for global tokenizer actions
+
+# v0.4.0 (2019-09-28)
+
 * Fixed calulcation of includes and lookback relations when there are more instances of the same symbol inspected
 * Added option to define `POG_DEBUG` to print debugging messages from parser adn tokenizer
 
