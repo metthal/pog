@@ -3,6 +3,7 @@ add_subdirectory(googletest)
 set(TEST_FILES
 	pog_tests.cpp
 	test_automaton.cpp
+	test_filter_view.cpp
 	test_grammar.cpp
 	test_item.cpp
 	test_parser.cpp

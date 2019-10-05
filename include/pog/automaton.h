@@ -106,11 +106,13 @@ public:
 			for (auto&& [symbol, prepared_state] : prepared_states)
 			{
 				prepared_state.set_index(static_cast<std::uint32_t>(_states.size()));
-				closure(prepared_state);
 				auto result = add_state(std::move(prepared_state));
 				auto* target_state = result.first;
 				if (result.second)
+				{
+					closure(*target_state);
 					to_process.push_back(target_state);
+				}
 				state->add_transition(symbol, target_state);
 				target_state->add_back_transition(symbol, state);
 			}

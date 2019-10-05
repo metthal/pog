@@ -257,3 +257,22 @@ Equality) {
 	EXPECT_FALSE(state1 != state2);
 	EXPECT_TRUE(state1 != state3);
 }
+
+TEST_F(TestState,
+Kernel) {
+	Symbol<int> s1(1, SymbolKind::Nonterminal, "1");
+	Symbol<int> s2(2, SymbolKind::Nonterminal, "2");
+	Symbol<int> s3(3, SymbolKind::End, "3");
+	Rule<int> rule(43, &s1, std::vector<const Symbol<int>*>{&s2, &s3}, [](std::vector<int>&&) -> int { return 0; });
+
+	State<int> state(1);
+	state.add_item(Item<int>{&rule, 0});
+	state.add_item(Item<int>{&rule, 1});
+	state.add_item(Item<int>{&rule, 2});
+
+	std::vector<std::string> kernel;
+	for (const auto& item : state.get_kernel())
+		kernel.push_back(item->to_string());
+
+	EXPECT_EQ(kernel, (std::vector<std::string>{"1 -> 2 <*> 3", "1 -> 2 3 <*>"}));
+}
