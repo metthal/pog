@@ -136,4 +136,25 @@ private:
 	std::map<const SymbolType*, std::vector<const State*>, SymbolLess<ValueT>> _back_transitions;
 };
 
+template <typename ValueT>
+struct StateKernelHash
+{
+	std::size_t operator()(const State<ValueT>* state) const
+	{
+		std::size_t kernel_hash = 0;
+		for (const auto& item : state->get_kernel())
+			hash_combine(kernel_hash, item->get_rule()->get_index(), item->get_read_pos());
+		return kernel_hash;
+	}
+};
+
+template <typename ValueT>
+struct StateKernelEquals
+{
+	bool operator()(const State<ValueT>* state1, const State<ValueT>* state2) const
+	{
+		return *state1 == *state2;
+	}
+};
+
 } // namespace pog

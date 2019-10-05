@@ -34,17 +34,13 @@ public:
 	template <typename StateT>
 	std::pair<StateType*, bool> add_state(StateT&& state)
 	{
-		auto itr = std::find_if(_states.begin(), _states.end(), [&](const auto& is) {
-			return *is.get() == state;
-		});
+		auto itr = _state_to_index.find(&state);
+		if (itr != _state_to_index.end())
+			return {_states[itr->second].get(), false};
 
-		if (itr == _states.end())
-		{
-			_states.push_back(std::make_unique<StateType>(std::forward<StateT>(state)));
-			return {_states.back().get(), true};
-		}
-		else
-			return {itr->get(), false};
+		_states.push_back(std::make_unique<StateType>(std::forward<StateT>(state)));
+		_state_to_index.emplace(_states.back().get(), _states.size() - 1);
+		return {_states.back().get(), true};
 	}
 
 	void closure(StateType& state)
@@ -152,6 +148,7 @@ node [shape=rect];
 private:
 	const GrammarType* _grammar;
 	std::vector<std::unique_ptr<StateType>> _states;
+	std::unordered_map<const StateType*, std::size_t, StateKernelHash<ValueT>, StateKernelEquals<ValueT>> _state_to_index;
 };
 
 } // namespace pog
