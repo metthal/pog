@@ -111,9 +111,6 @@ public:
 
 	bool operator==(const State& rhs) const
 	{
-		//return std::equal(_items.begin(), _items.end(), rhs._items.begin(), rhs._items.end(), [](const auto& left, const auto& right) {
-		//	return *left.get() == *right.get();
-		//});
 		auto lhs_kernel = get_kernel();
 		auto rhs_kernel = rhs.get_kernel();
 		return std::equal(lhs_kernel.begin(), lhs_kernel.end(), rhs_kernel.begin(), rhs_kernel.end(), [](const auto& left, const auto& right) {

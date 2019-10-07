@@ -21,7 +21,7 @@ public:
 
 	using StateAndSymbolType = StateAndSymbol<ValueT>;
 
-	Automaton(const GrammarType* grammar) : _grammar(grammar) {}
+	Automaton(const GrammarType* grammar) : _grammar(grammar), _states(), _state_to_index() {}
 
 	const std::vector<std::unique_ptr<StateType>>& get_states() const { return _states; }
 
@@ -106,6 +106,9 @@ public:
 				auto* target_state = result.first;
 				if (result.second)
 				{
+					// We calculate closure only if it's new state introduced in the automaton.
+					// States can be compared only with their kernel items so it's better to just do it
+					// once for each state.
 					closure(*target_state);
 					to_process.push_back(target_state);
 				}
