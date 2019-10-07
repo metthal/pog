@@ -56,17 +56,25 @@ SingleTokenWithSymbol) {
 
 TEST_F(TestTokenBuilder,
 SingleTokenWithDescription) {
-	TokenBuilder<int> tb(&grammar, &tokenizer, "abc");
-	tb.symbol("ABC");
-	tb.description("abc token");
-	tb.done();
+	TokenBuilder<int> tb1(&grammar, &tokenizer, "abc");
+	tb1.symbol("ABC");
+	tb1.description("abc token");
+	tb1.done();
 
-	EXPECT_EQ(grammar.get_symbols().size(), 3u);
-	EXPECT_EQ(tokenizer.get_tokens().size(), 2u);
+	TokenBuilder<int> tb2(&grammar, &tokenizer, "def");
+	tb2.symbol("DEF");
+	tb2.done();
+
+
+	EXPECT_EQ(grammar.get_symbols().size(), 4u);
+	EXPECT_EQ(tokenizer.get_tokens().size(), 3u);
 
 	EXPECT_EQ(grammar.get_symbols()[2]->get_name(), "ABC");
 	EXPECT_EQ(grammar.get_symbols()[2]->get_description(), "abc token");
+	EXPECT_EQ(grammar.get_symbols()[3]->get_name(), "DEF");
+	EXPECT_EQ(grammar.get_symbols()[3]->get_description(), "DEF");
 	EXPECT_EQ(tokenizer.get_tokens()[1]->get_pattern(), "abc");
+	EXPECT_EQ(tokenizer.get_tokens()[2]->get_pattern(), "def");
 }
 
 TEST_F(TestTokenBuilder,
