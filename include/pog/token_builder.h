@@ -33,6 +33,7 @@ public:
 				const auto& prec = _precedence.value();
 				symbol->set_precedence(prec.level, prec.assoc);
 			}
+
 			if(symbol && _description.size() != 0)
 			 	symbol->set_description(_description);
 
