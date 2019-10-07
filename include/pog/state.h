@@ -3,6 +3,7 @@
 #include <numeric>
 #include <unordered_set>
 
+#include <pog/filter_view.h>
 #include <pog/item.h>
 #include <pog/utils.h>
 
@@ -93,6 +94,13 @@ public:
 		return result;
 	}
 
+	auto get_kernel() const
+	{
+		return FilterView{_items.begin(), _items.end(), [](const auto& item) {
+			return item->is_kernel();
+		}};
+	}
+
 	bool contains(const ItemType& item) const
 	{
 		auto itr = std::lower_bound(_items.begin(), _items.end(), item, [](const auto& left, const auto& needle) {
@@ -103,7 +111,9 @@ public:
 
 	bool operator==(const State& rhs) const
 	{
-		return std::equal(_items.begin(), _items.end(), rhs._items.begin(), rhs._items.end(), [](const auto& left, const auto& right) {
+		auto lhs_kernel = get_kernel();
+		auto rhs_kernel = rhs.get_kernel();
+		return std::equal(lhs_kernel.begin(), lhs_kernel.end(), rhs_kernel.begin(), rhs_kernel.end(), [](const auto& left, const auto& right) {
 			return *left.get() == *right.get();
 		});
 	}
@@ -121,6 +131,27 @@ private:
 	std::vector<std::unique_ptr<ItemType>> _items;
 	std::map<const SymbolType*, const State*, SymbolLess<ValueT>> _transitions;
 	std::map<const SymbolType*, std::vector<const State*>, SymbolLess<ValueT>> _back_transitions;
+};
+
+template <typename ValueT>
+struct StateKernelHash
+{
+	std::size_t operator()(const State<ValueT>* state) const
+	{
+		std::size_t kernel_hash = 0;
+		for (const auto& item : state->get_kernel())
+			hash_combine(kernel_hash, item->get_rule()->get_index(), item->get_read_pos());
+		return kernel_hash;
+	}
+};
+
+template <typename ValueT>
+struct StateKernelEquals
+{
+	bool operator()(const State<ValueT>* state1, const State<ValueT>* state2) const
+	{
+		return *state1 == *state2;
+	}
 };
 
 } // namespace pog

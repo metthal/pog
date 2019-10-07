@@ -38,6 +38,7 @@ public:
 		if (_read_pos == 0)
 			return {};
 
+		// TODO: return just iterator range
 		std::vector<const SymbolType*> result(_read_pos);
 		std::copy(_rule->get_rhs().begin(), _rule->get_rhs().begin() + _read_pos, result.begin());
 		return result;
@@ -75,7 +76,7 @@ public:
 
 	bool is_kernel() const
 	{
-		return _read_pos > 0;
+		return _read_pos > 0 || _rule->is_start_rule();
 	}
 
 	bool is_final() const

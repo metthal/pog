@@ -1,6 +1,7 @@
 # dev
 
 * Added support for global tokenizer actions
+* Improved performance of constructing parser (construction of LR automaton to be precise)
 
 # v0.4.0 (2019-09-28)
 

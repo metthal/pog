@@ -21,11 +21,11 @@ public:
 	using CallbackType = std::function<ValueT(std::vector<ValueT>&&)>;
 
 	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs)
-		: _index(index), _lhs(lhs), _rhs(rhs), _action(), _midrule_size(std::nullopt) {}
+		: _index(index), _lhs(lhs), _rhs(rhs), _action(), _midrule_size(std::nullopt), _start(false) {}
 
 	template <typename CallbackT>
 	Rule(std::uint32_t index, const SymbolType* lhs, const std::vector<const SymbolType*>& rhs, CallbackT&& action)
-		: _index(index), _lhs(lhs), _rhs(rhs), _action(std::forward<CallbackT>(action)), _midrule_size(std::nullopt) {}
+		: _index(index), _lhs(lhs), _rhs(rhs), _action(std::forward<CallbackT>(action)), _midrule_size(std::nullopt), _start(false) {}
 
 	std::uint32_t get_index() const { return _index; }
 	const SymbolType* get_lhs() const { return _lhs; }
@@ -63,7 +63,9 @@ public:
 	}
 
 	bool has_action() const { return static_cast<bool>(_action); }
+	bool is_start_rule() const { return _start; }
 
+	void set_start_rule(bool set) { _start = set; }
 	void set_midrule(std::size_t size) { _midrule_size = size; }
 	bool is_midrule() const { return static_cast<bool>(_midrule_size); }
 	std::size_t get_midrule_size() const { return _midrule_size.value(); }
@@ -81,6 +83,7 @@ private:
 	CallbackType _action;
 	std::optional<Precedence> _precedence;
 	std::optional<std::size_t> _midrule_size;
+	bool _start;
 };
 
 } // namespace pog

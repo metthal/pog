@@ -87,9 +87,11 @@ public:
 
 	void set_start_symbol(const SymbolType* symbol)
 	{
-		_start_rule = add_rule(_internal_start_symbol, std::vector<const SymbolType*>{symbol, _internal_end_of_input}, [](auto&& args) {
+		auto start_rule = add_rule(_internal_start_symbol, std::vector<const SymbolType*>{symbol, _internal_end_of_input}, [](auto&& args) {
 			return std::move(args[0]);
 		});
+		start_rule->set_start_rule(true);
+		_start_rule = start_rule;
 	}
 
 	SymbolType* add_symbol(SymbolKind kind, const std::string& name)
