@@ -34,6 +34,9 @@ public:
 				symbol->set_precedence(prec.level, prec.assoc);
 			}
 
+			if(symbol && _description.size() != 0)
+			 	symbol->set_description(_description);
+
 			if (_enter_state)
 				token->set_transition_to_state(_enter_state.value());
 		}
@@ -57,6 +60,12 @@ public:
 	TokenBuilder& precedence(std::uint32_t level, Associativity assoc)
 	{
 		_precedence = Precedence{level, assoc};
+		return *this;
+	}
+
+	TokenBuilder& description(const std::string& text)
+	{
+		_description = text;
 		return *this;
 	}
 
@@ -89,6 +98,7 @@ public:
 private:
 	GrammarType* _grammar;
 	TokenizerType* _tokenizer;
+	std::string _description;
 	std::string _pattern;
 	std::string _symbol_name;
 	std::optional<Precedence> _precedence;
