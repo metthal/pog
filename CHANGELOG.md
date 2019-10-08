@@ -1,6 +1,7 @@
 # dev
 
 * Added support for global tokenizer actions
+* Added option to specify symbol description which can provide more human friendly output for the symbol in case of a syntax error
 * Improved performance of constructing parser (construction of LR automaton to be precise)
 
 # v0.4.0 (2019-09-28)
