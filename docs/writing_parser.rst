@@ -91,9 +91,9 @@ When description specified, any parsing error refering to this symbol will refer
   parser.token(R"(0x[0-9a-fA-F]+)").symbol("int").description("hexadecimal integer");
   parser.token("[0-9]+").symbol("int").description("decimal integer");
 
-Assigning descriptions is especially useful in bigger projects where we want to distinguish between simmilar tokens used in two different tokenizer states (see :ref:`advanced`).
-Once we have symbols, we would also like to take the actual boolean value, digits or a number or characters of a string and tie it to our symbol. You specify the action with
-``action`` method which expects callable object that accepts ``std::string_view`` containing the part of the input that was
+Assigning descriptions is especially useful in bigger projects where we want to distinguish between similar tokens used in two different tokenizer states (see :ref:`advanced`).
+Once we have symbols, we would also like to take the actual boolean value, digits, or a number of characters of a string and tie it to our symbol. You specify the action with
+``action`` method which expects a callable object that accepts ``std::string_view`` containing the part of the input that was
 matched with that specific regular expression and returns value of ``Value`` type.
 
 .. code-block:: cpp
@@ -124,8 +124,8 @@ matched with that specific regular expression and returns value of ``Value`` typ
       return std::string{str};
     });
 
-Token for ``=`` does not need any action because it itself doesn't bear any value. We only need an information that it is located on the input.
-You might also need to perform some action whenever end of an input is reached. In that case you can use ``end_token`` method.
+Token for ``=`` does not need any action because it itself doesn't bear any value. We only need information that it is located on the input.
+You might also need to perform some action whenever end of an input is reached. In that case, you can use the ``end_token`` method.
 
 .. code-block:: cpp
 
