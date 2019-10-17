@@ -10,14 +10,9 @@
 #endif
 
 #ifdef POG_DEBUG_PARSER
-template <typename... Args>
-void debug_parser(Args&&... args)
-{
-	fmt::print(stderr, "[parser] {}\n", fmt::format(std::forward<Args>(args)...));
-}
+#define debug_parser(...) fmt::print(stderr, "[parser] {}\n", fmt::format(__VA_ARGS__))
 #else
-template <typename... Args>
-void debug_parser(Args&&...) {}
+#define debug_parser(...)
 #endif
 
 #include <pog/action.h>
