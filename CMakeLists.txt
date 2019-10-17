@@ -72,7 +72,7 @@ target_sources(pog INTERFACE ${POG_FILES})
 if(MSVC)
 	target_compile_options(pog INTERFACE /W3)
 else()
-	target_compile_options(pog INTERFACE -Wall -Wextra)
+	target_compile_options(pog INTERFACE -Wall -Wextra -Wno-empty-body)
 endif()
 target_include_directories(pog INTERFACE
 	"$<BUILD_INTERFACE:${POG_INCLUDE_DIR}>"

@@ -11,14 +11,9 @@
 #endif
 
 #ifdef POG_DEBUG_TOKENIZER
-template <typename... Args>
-void debug_tokenizer(Args&&... args)
-{
-	fmt::print(stderr, "[tokenizer] {}\n", fmt::format(std::forward<Args>(args)...));
-}
+#define debug_tokenizer(...) fmt::print(stderr, "[tokenizer] {}\n", fmt::format(__VA_ARGS__))
 #else
-template <typename... Args>
-void debug_tokenizer(Args&&...) {}
+#define debug_tokenizer(...)
 #endif
 
 #include <pog/grammar.h>
