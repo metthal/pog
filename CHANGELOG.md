@@ -1,4 +1,4 @@
-# dev
+# v0.5.0 (2019-11-10)
 
 * Added support for global tokenizer actions
 * Added option to specify symbol description which can provide more human friendly output for the symbol in case of a syntax error
