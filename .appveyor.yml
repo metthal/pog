@@ -15,7 +15,7 @@ environment:
 before_build:
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake -G "%CMAKE_GENERATOR%" -DCMAKE_INSTALL_PREFIX=..\install -DPOG_TESTS=ON -DPOG_EXAMPLES=ON -DPOG_DOWNLOAD_RE2=ON -DPOG_DOWNLOAD_FMT=ON %CMAKE_ARGS% ..
+  - cmd: cmake -G "%CMAKE_GENERATOR%" -DCMAKE_INSTALL_PREFIX=..\install -DPOG_TESTS=ON -DPOG_EXAMPLES=ON -DPOG_BUNDLED_RE2=ON -DPOG_BUNDLED_FMT=ON %CMAKE_ARGS% ..
 
 build_script:
   - cmd: cmake --build . --config "%CONFIGURATION%" --target install -- -m
