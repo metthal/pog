@@ -1,3 +1,7 @@
+# v0.5.1 (2019-11-29)
+
+* Added option to specify where to download fmt and re2 from using environment variables `(FMT|RE2)_DOWNLOAD_URL` and `(FMT|RE2)_DOWNLOAD_URL_SHA256`
+
 # v0.5.0 (2019-11-10)
 
 * Added support for global tokenizer actions
