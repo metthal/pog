@@ -1,3 +1,7 @@
+# v0.5.2 (2019-11-29)
+
+* Option to download RE2 and fmt are now replaced with options to use bundled RE2 and fmt
+
 # v0.5.1 (2019-11-29)
 
 * Added option to specify where to download fmt and re2 from using environment variables `(FMT|RE2)_DOWNLOAD_URL` and `(FMT|RE2)_DOWNLOAD_URL_SHA256`
