@@ -1,9 +1,9 @@
 @PACKAGE_INIT@
 
-set(POG_DOWNLOAD_RE2 @POG_DOWNLOAD_RE2@)
-set(POG_DOWNLOAD_FMT @POG_DOWNLOAD_FMT@)
+set(POG_BUNDLED_RE2 @POG_BUNDLED_RE2@)
+set(POG_BUNDLED_FMT @POG_BUNDLED_FMT@)
 
-if(POG_DOWNLOAD_RE2)
+if(POG_BUNDLED_RE2)
 	find_package(Threads REQUIRED)
 	add_library(re2::re2 STATIC IMPORTED)
 	set_target_properties(re2::re2 PROPERTIES
@@ -16,7 +16,7 @@ else()
 	find_package(re2 REQUIRED)
 endif()
 
-if(POG_DOWNLOAD_FMT)
+if(POG_BUNDLED_FMT)
 	add_library(fmt::fmt STATIC IMPORTED)
 	set_target_properties(fmt::fmt PROPERTIES
 		INTERFACE_INCLUDE_DIRECTORIES @PACKAGE_FMT_INCLUDE_DIR@

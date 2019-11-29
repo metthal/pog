@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 project(pog
 	LANGUAGES CXX
-	VERSION 0.1.0
+	VERSION 0.5.2
 )
 
 ## Module path for custom finders.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 ## Options.
-option(POG_DOWNLOAD_RE2 "Download RE2 during build process" OFF)
-option(POG_DOWNLOAD_FMT "Download fmt during build process" OFF)
+option(POG_BUNDLED_RE2  "Use bundled re2"                   OFF)
+option(POG_BUNDLED_FMT  "Use bundled fmt"                   OFF)
 option(POG_EXAMPLES     "Build examples"                    OFF)
 option(POG_TESTS        "Build tests"                       OFF)
 option(POG_COVERAGE     "Enable coverage"                   OFF)
@@ -41,8 +41,8 @@ set(POG_PC_INSTALL_FILES     "${POG_PC_CONFIG_FILE}")
 ### Threads - because of RE2
 find_package(Threads REQUIRED)
 
-## If RE2 is not being downloaded, try to find it using find_package().
-if(NOT POG_DOWNLOAD_RE2)
+## If bundled RE2 is not being used, try to find it using find_package().
+if(NOT POG_BUNDLED_RE2)
 	find_package(re2 REQUIRED)
 	if(RE2_FOUND)
 		message(STATUS "RE2 include directory: ${RE2_INCLUDE_DIR}")
@@ -52,8 +52,8 @@ if(NOT POG_DOWNLOAD_RE2)
 	list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findre2.cmake")
 endif()
 
-## If fmt is not being downloaded, try to find it using find_package().
-if(NOT POG_DOWNLOAD_FMT)
+## If bundled fmt is not being used, try to find it using find_package().
+if(NOT POG_BUNDLED_FMT)
 	find_package(fmt REQUIRED)
 	if(fmt_FOUND)
 		message(STATUS "Found libfmt")
@@ -63,7 +63,7 @@ else()
 	list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/fmt/Findfmt.cmake")
 endif()
 
-## Add deps folder to resolve downloadable dependencies.
+## Add deps folder to resolve bundled dependencies.
 add_subdirectory(deps)
 
 ## Library.
@@ -94,9 +94,9 @@ if(POG_TESTS)
 	add_subdirectory(tests)
 endif()
 
-## We need to set custom RE2 include directory and library path if we were one who downloaded it.
+## We need to set custom RE2 include directory and library path if bundled dependencies are used.
 ## Also we need to set proper requirements for pkg-config file.
-if(POG_DOWNLOAD_RE2)
+if(POG_BUNDLED_RE2)
 	set(RE2_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
 	set(RE2_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pog_re2${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	set(POG_PC_REQUIREMENT "Libs: -L\$\{libdir\} -lpog_re2 -lpthread")
@@ -107,7 +107,7 @@ else()
 endif()
 
 ## Handle also fmt in pkg-config file.
-if(POG_DOWNLOAD_FMT)
+if(POG_BUNDLED_FMT)
 	set(FMT_INCLUDE_DIR "${POG_INSTALL_INCLUDE_DIR}/pog")
 	set(FMT_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}//${CMAKE_STATIC_LIBRARY_PREFIX}pog_fmt${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	set(POG_PC_REQUIREMENT "${POG_PC_REQUIREMENT} -lpog_fmt")

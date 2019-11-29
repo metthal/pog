@@ -40,3 +40,8 @@ Things to do after 1.0.0
 - [ ] Code Cleanup :)
 - [ ] Own implementation for tokenizer to be header-only (DFA)
 - [ ] Lightweight iterator ranges
+
+## Requirements
+
+* fmt (5.3.0 or newer)
+* re2 (2019-09-01 or newer)

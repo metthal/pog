@@ -61,15 +61,15 @@ Compilation
 
 Other options you can use:
 
-* ``POG_DOWNLOAD_RE2`` - ``re2`` will be downloaded during build-time. It will be compiled and installed as ``libpog_re2.a`` (or ``pog_re2.lib`` on Windows) together with the library. (Default: ``OFF``)
-* ``POG_DOWNLOAD_FMT`` - ``fmt`` will be downloaded during build-time. It will be compiled and installed as ``libpog_fmt.a`` (or ``pog_fmt.lib`` on Windows) together with the library. (Default: ``OFF``)
+* ``POG_BUNDLED_RE2`` - Bundled ``re2`` will be used. It will be compiled and installed as ``libpog_re2.a`` (or ``pog_re2.lib`` on Windows) together with the library. (Default: ``OFF``)
+* ``POG_BUNDLED_FMT`` - Bundled ``fmt`` will be used. It will be compiled and installed as ``libpog_fmt.a`` (or ``pog_fmt.lib`` on Windows) together with the library. (Default: ``OFF``)
 * ``POG_TESTS`` - Build tests located in ``tests/`` folder. (Default: ``OFF``)
 * ``POG_EXAMPLES`` - Build examples located in ``examples/`` folder. (Default: ``OFF``)
 * ``POG_PIC`` - Build position independent code. (Default: ``OFF``)
 
 .. attention::
 
-  Option ``POG_PIC`` does not have any effect if you do not neither of ``POG_DOWNLOAD_RE2`` or ``POG_DOWNLOAD_FMT``. Libraries installed in your system are not guaranteed to be position independent.
+  Option ``POG_PIC`` does not have any effect if you do not neither of ``POG_BUNDLED_RE2`` or ``POG_BUNDLED_FMT``. Libraries installed in your system are not guaranteed to be position independent.
 
 Usage
 =====
