@@ -1,3 +1,7 @@
+# v0.5.3 (2020-02-06)
+
+* Reusing parser after it has ended unsuccessfully no longer causes crash
+
 # v0.5.2 (2019-11-29)
 
 * Option to download RE2 and fmt are now replaced with options to use bundled RE2 and fmt
