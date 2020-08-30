@@ -1,0 +1,32 @@
+Source: libpog
+Section: devel
+Priority: optional
+Maintainer: Milkovič Marek <marek.milkovic@avast.com>
+Build-Depends: debhelper-compat (= 12), libre2-dev (>= 2019-09-01), libfmt-dev (>= 5.3.0)
+Standards-Version: 4.4.1
+Homepage: https://retdec.com/
+Vcs-Browser: https://github.com/metthal/pog
+Vcs-Git: https://github.com/metthal/pog.git
+
+Package: libpog-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends}, libre2-dev, libfmt-dev (>= 5.3.0)
+Description: A C++17 generator for LALR(1) parsers -- development files
+ Pog is C++17 library for generating LALR(1) parsers. If you are familiar
+ with tools like yacc + lex or bison + flex then this should be already
+ known concept for you.
+ .
+ This package contains the development files, and is header-only.
+
+Package: libpog-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: A C++17 generator for LALR(1) parsers -- documentation
+ Pog is C++17 library for generating LALR(1) parsers. If you are familiar
+ with tools like yacc + lex or bison + flex then this should be already
+ known concept for you.
+ .
+ This package contains the documentation files.
