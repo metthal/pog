@@ -1,0 +1,5 @@
+libpog (0.5.3-1) unstable; urgency=medium
+
+  * Initial packaging for Debian.
+
+ -- Michael Mohr <akihana@gmail.com>  Sat, 29 Aug 2020 20:27:08 -0700

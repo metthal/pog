@@ -1,0 +1,8 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DPOG_BUNDLED_RE2=OFF -DPOG_BUNDLED_FMT=OFF

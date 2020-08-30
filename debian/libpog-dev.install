@@ -1,0 +1,3 @@
+usr/include
+usr/share/cmake/pog
+usr/lib/*/pkgconfig/pog.pc
