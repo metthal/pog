@@ -24,6 +24,8 @@ author = 'Marek Milkovic'
 # The full version, including alpha/beta/rc tags
 release = '0.2.0'
 
+# the main document
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
