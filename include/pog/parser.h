@@ -145,6 +145,7 @@ public:
 
 		while (!stack.empty())
 		{
+			std::optional<ActionType> maybe_action;
 			// Check if we remember token from the last iteration because we did reduction
 			// so the token was not "consumed" from the input.
 			if (!token)
@@ -152,23 +153,31 @@ public:
 				token = _tokenizer.next_token();
 				if (!token)
 				{
-					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-					throw SyntaxError(expected_symbols);
+					maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), _grammar.get_symbol("@empty"));
+					if (!maybe_action.has_value()) {
+						auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+						throw SyntaxError(expected_symbols);
+					}
+					else 
+						debug_parser("Tokenizer returned new token with symbol \'@empty\'");
 				}
-
-				debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
+				else 
+					debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
 			}
 			else
 				debug_parser("Reusing old token with symbol \'{}\'", token.value().symbol->get_name());
 
 			debug_parser("Top of the stack is state {}", stack.back().first);
 
-			const auto* next_symbol = token.value().symbol;
-			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
-			if (!maybe_action)
-			{
-				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				throw SyntaxError(next_symbol, expected_symbols);
+			if (!maybe_action.has_value())
+			{	
+				const auto* next_symbol = token.value().symbol;
+				maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
+				if (!maybe_action)
+				{
+					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+					throw SyntaxError(next_symbol, expected_symbols);
+				}
 			}
 
 			// TODO: use visit

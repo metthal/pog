@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <exception>
 #include <string>
@@ -15,8 +15,8 @@ class Error : public std::exception
 {
 public:
 	Error() : _msg() {}
-	template <typename T>
-	Error(T&& msg) noexcept : _msg(std::forward<T>(msg)) {}
+	//template <typename T>
+	//Error(T&& msg) noexcept : _msg(std::forward<T>(msg)) {}
 	Error(const Error& o) noexcept : _msg(o._msg) {}
 	virtual ~Error() noexcept {}
 
