@@ -223,6 +223,7 @@ public:
 
 	void enter_state(const std::string& state)
 	{
+		debug_tokenizer("Enter states: {}", state);
 		_current_state = get_state_info(state);
 		assert(_current_state && "Transition to unknown state in tokenizer");
 	}

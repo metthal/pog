@@ -145,30 +145,34 @@ public:
 
 		while (!stack.empty())
 		{
-			// Check if we remember token from the last iteration because we did reduction
-			// so the token was not "consumed" from the input.
-			if (!token)
-			{
-				token = _tokenizer.next_token();
+			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), _grammar.get_symbol("@empty"));
+			if (!maybe_action)
+			{	
+				// Check if we remember token from the last iteration because we did reduction
+				// so the token was not "consumed" from the input.
 				if (!token)
 				{
-					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-					throw SyntaxError(expected_symbols);
+					token = _tokenizer.next_token();
+					if (!token)
+					{
+						auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+						throw SyntaxError(expected_symbols);
+					}
+
+					debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
 				}
+				else
+					debug_parser("Reusing old token with symbol \'{}\'", token.value().symbol->get_name());
 
-				debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
-			}
-			else
-				debug_parser("Reusing old token with symbol \'{}\'", token.value().symbol->get_name());
+				debug_parser("Top of the stack is state {}", stack.back().first);
 
-			debug_parser("Top of the stack is state {}", stack.back().first);
-
-			const auto* next_symbol = token.value().symbol;
-			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
-			if (!maybe_action)
-			{
-				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				throw SyntaxError(next_symbol, expected_symbols);
+				const auto* next_symbol = token.value().symbol;
+				auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
+				if (!maybe_action)
+				{
+					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+					throw SyntaxError(next_symbol, expected_symbols);
+				}
 			}
 
 			// TODO: use visit

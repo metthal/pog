@@ -13,7 +13,8 @@ enum class SymbolKind
 {
 	End,
 	Nonterminal,
-	Terminal
+	Terminal,
+	Empty
 };
 
 template <typename ValueT>
