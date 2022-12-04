@@ -57,8 +57,12 @@ public:
 				// Union all Follow() sets of the current state and rule to compute Lookahead()
 				for (const auto& ss : *lookback_with)
 				{
-					if (auto itr = Parent::_operation.find(sr); itr == Parent::_operation.end())
-						Parent::_operation.emplace(std::move(sr), _follow_op[ss]);
+					if (auto itr = Parent::_operation.find(sr); itr == Parent::_operation.end()) {
+						if (rule->is_midrule())
+							Parent::_operation.emplace(std::move(sr), std::unordered_set<const Symbol<ValueT>*>{Parent::_grammar->get_symbol("@empty")});
+						else
+							Parent::_operation.emplace(std::move(sr), _follow_op[ss]);
+					}
 					else if (auto follow_res = _follow_op.find(ss); follow_res)
 						std::copy(follow_res->begin(), follow_res->end(), std::inserter(itr->second, itr->second.begin()));
 				}

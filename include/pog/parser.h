@@ -145,30 +145,40 @@ public:
 
 		while (!stack.empty())
 		{
-			// Check if we remember token from the last iteration because we did reduction
-			// so the token was not "consumed" from the input.
+			std::optional<ActionType> maybe_action;
+			// if token was not "consumed" from the input, pass it to tokenizer for retokenize.
+			token = _tokenizer.next_token(token);
 			if (!token)
 			{
-				token = _tokenizer.next_token();
-				if (!token)
+				maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), _grammar.get_symbol("@empty"));
+				if (!maybe_action)
 				{
 					auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
 					throw SyntaxError(expected_symbols);
 				}
-
-				debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
+				else
+					debug_parser("Mistaking Nothing matched, replaced by token with symbol \'@empty\'");
 			}
-			else
-				debug_parser("Reusing old token with symbol \'{}\'", token.value().symbol->get_name());
+			else 
+				debug_parser("Tokenizer returned new token with symbol \'{}\'", token.value().symbol->get_name());
 
 			debug_parser("Top of the stack is state {}", stack.back().first);
 
-			const auto* next_symbol = token.value().symbol;
-			auto maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
 			if (!maybe_action)
-			{
-				auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
-				throw SyntaxError(next_symbol, expected_symbols);
+			{	
+				const auto* next_symbol = token.value().symbol;
+				maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), next_symbol);
+				if (!maybe_action)
+				{
+					maybe_action = _parsing_table.get_action(_automaton.get_state(stack.back().first), _grammar.get_symbol("@empty"));
+					if (!maybe_action)
+					{
+						auto expected_symbols = _parsing_table.get_expected_symbols_from_state(_automaton.get_state(stack.back().first));
+						throw SyntaxError(next_symbol, expected_symbols);
+					}
+					else
+						debug_parser("Mistaking returned token with symbol \'{}\', replaced by token with symbol \'@empty\'", token.value().symbol->get_name());
+				}
 			}
 
 			// TODO: use visit

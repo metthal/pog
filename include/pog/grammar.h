@@ -24,6 +24,7 @@ public:
 	{
 		_internal_start_symbol = add_symbol(SymbolKind::Nonterminal, "@start");
 		_internal_end_of_input = add_symbol(SymbolKind::End, "@end");
+		_internal_enter_states = add_symbol(SymbolKind::Empty, "@empty");
 	}
 
 	const std::vector<std::unique_ptr<SymbolType>>& get_symbols() const { return _symbols; }
@@ -277,6 +278,7 @@ private:
 	std::unordered_map<std::string, SymbolType*> _name_to_symbol;
 	const SymbolType* _internal_start_symbol;
 	const SymbolType* _internal_end_of_input;
+	const SymbolType* _internal_enter_states;
 	const RuleType* _start_rule;
 
 	mutable std::unordered_map<const SymbolType*, bool> _empty_table;
