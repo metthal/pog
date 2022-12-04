@@ -138,7 +138,7 @@ public:
 		_global_action = std::move(global_action);
 	}
 
-	std::optional<TokenMatchType> next_token()
+	std::optional<TokenMatchType> next_token(std::optional<TokenMatchType>& misread_token)
 	{
 		bool repeat = true;
 		while (repeat)
@@ -151,6 +151,9 @@ public:
 			}
 
 			auto& current_input = _input_stack.back();
+			if (misread_token.has_value())
+				current_input.stream.remove_prefix(-misread_token.value().match_length);
+
 			if (!current_input.at_end)
 			{
 				// Matched patterns doesn't have to be sorted (used to be in older re2 versions) but we shouldn't count on that
@@ -223,6 +226,7 @@ public:
 
 	void enter_state(const std::string& state)
 	{
+		debug_tokenizer("Enter states: {}", state);
 		_current_state = get_state_info(state);
 		assert(_current_state && "Transition to unknown state in tokenizer");
 	}

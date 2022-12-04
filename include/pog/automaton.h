@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <deque>
 #include <memory>
@@ -124,7 +124,7 @@ public:
 		std::transform(_states.begin(), _states.end(), states_str.begin(), [](const auto& state) {
 			std::vector<std::string> items_str(state->size());
 			std::transform(state->begin(), state->end(), items_str.begin(), [](const auto& item) {
-				return item->to_string("→", "ε", "•");
+				return item->to_string("->", "&", ".");
 			});
 			return fmt::format("{} [label=\"{}\\l\", xlabel=\"{}\"]", state->get_index(), fmt::join(items_str.begin(), items_str.end(), "\\l"), state->get_index());
 		});

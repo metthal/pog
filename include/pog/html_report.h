@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <fstream>
 
@@ -66,7 +66,6 @@ public:
 $(document).ready(function() {{
 	$('[data-toggle="tooltip"]').tooltip();
 }});
-
 var clipboard = new ClipboardJS('.btn');
 		</script>
 	</body>
@@ -97,8 +96,8 @@ private:
 		std::vector<std::string> issues(_parser._report.number_of_issues());
 		std::transform(_parser._report.begin(), _parser._report.end(), issues.begin(), [](const auto& issue) {
 			return fmt::format("<li><span>{}</span></li>", visit_with(issue,
-				[&](const ShiftReduceConflict<ValueT>& sr) { return sr.to_string("→", "ε"); },
-				[&](const ReduceReduceConflict<ValueT>& rr) { return rr.to_string("→", "ε"); }
+				[&](const ShiftReduceConflict<ValueT>& sr) { return sr.to_string("->", "&"); },
+				[&](const ReduceReduceConflict<ValueT>& rr) { return rr.to_string("->", "&"); }
 			));
 		});
 
@@ -136,7 +135,7 @@ private:
 			std::vector<std::string> row;
 			row.push_back(fmt::format(
 				"<tr><td data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"{}\" data-html=\"true\">{}</td>",
-				state->to_string("→", "ε", "•", "<br/>"),
+				state->to_string("->", "&", ".", "<br/>"),
 				state->get_index()
 			));
 			for (const auto& sym : terminal_symbols)
@@ -152,14 +151,14 @@ private:
 					[](const ShiftActionType& shift) {
 						return fmt::format(
 							"<td data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"{state_str}\" data-html=\"true\"><a href=\"#state{state_id}\">s{state_id}</a></td>",
-							"state_str"_a = shift.state->to_string("→", "ε", "•", "<br/>"),
+							"state_str"_a = shift.state->to_string("->", "&", ".", "<br/>"),
 							"state_id"_a = shift.state->get_index()
 						);
 					},
 					[](const ReduceActionType& reduce) {
 						return fmt::format(
 							"<td data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"{}\">r{}</td>",
-							reduce.rule->to_string("→", "ε"),
+							reduce.rule->to_string("->", "&"),
 							reduce.rule->get_index()
 						);
 					},
@@ -178,7 +177,7 @@ private:
 
 				row.push_back(fmt::format(
 					"<td data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"{state_str}\" data-html=\"true\"><a href=\"#state{state_id}\">{state_id}</a></td>",
-					"state_str"_a = go_to.value()->to_string("→", "ε", "•", "<br/>"),
+					"state_str"_a = go_to.value()->to_string("->", "&", ".", "<br/>"),
 					"state_id"_a = go_to.value()->get_index()
 				));
 			}
@@ -237,7 +236,7 @@ private:
 		{
 			std::vector<std::string> cols(state->size());
 			std::transform(state->begin(), state->end(), cols.begin(), [](const auto& item) {
-				return fmt::format("<tr><td>{}</td></tr>", item->to_string("→", "ε", "•"));
+				return fmt::format("<tr><td>{}</td></tr>", item->to_string("->", "&", "."));
 			});
 			states.push_back(fmt::format(
 				single_state_template,
